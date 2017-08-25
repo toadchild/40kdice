@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>40K Visual Dice Calculator (8th Ed)</title>
+        <link href="dice.css" rel="stylesheet" type="text/css">
+        <script type="text/javascript" src="dice.js"></script>
+        <script type="text/javascript" src="chart.js/dist/Chart.js"></script>
+    </head>
+    <body onload="init()">
+    <h1>40K Visual Dice Calculator (8th Ed)</h1>
+
+    <div>
+        <h2>Attack Stats</h2>
+        <p><label>Attacks: <input type="text" id="attacks"></label></p>
+        <p>
+        <label>BS/WS: <input type="text" id="bs"></label>
+        <label><input type="checkbox" id="triple_hit_on_6" value="1">Hits of 6 generate 2 extra hits</label>
+        </p>
+        <p><label>Hit Modifier: <input type="text" id="hit_mod"></label></p>
+        <p><label>S: <input type="text" id="s"></label></p>
+        <p><label>AP: <input type="text" id="ap"></label></p>
+        <p><label>D: <input type="text" id="d" value="1"></label></p>
+    </div>
+    <div>
+        <h2>Defense Stats</h2>
+        <p><label>T: <input type="text" id="t"></label></p>
+        <p>
+        <label>Save: <input type="text" id="save"></label>
+        <label><input type="checkbox" id="cover" value="1">Cover</label>
+        </p>
+        <p><label>Save Modifier: <input type="text" id="save_mod"></label></p>
+        <p><label>Invulnerable Save: <input type="text" id="invulnerable"></label></p>
+    </div>
+    <p><button onclick="roll()">Roll</button></p>
+
+    <div class="chart">
+        <canvas id="attack_chart" width="100" height="100"></canvas>
+    </div>
+    <div class="chart">
+        <canvas id="hit_chart" width="100" height="100"></canvas>
+    </div>
+    <div class="chart">
+        <canvas id="wound_chart" width="100" height="100"></canvas>
+    </div>
+    <div class="chart">
+        <canvas id="unsaved_chart" width="100" height="100"></canvas>
+    </div>
+    <div class="chart">
+        <canvas id="damage_chart" width="100" height="100"></canvas>
+    </div>
+
+    <div class="linkbox">
+        <a href="" id="permalink">Permalink</a>
+    </div>
+
+    </body>
+</html>

@@ -1,0 +1,9 @@
+.chart {
+    width: 200px;
+    height: 200px;
+    float: left;
+}
+
+.linkbox {
+    clear: both;
+}
