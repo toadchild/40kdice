@@ -80,6 +80,32 @@ function success_chance(stat, modifier) {
     return ret;
 }
 
+// Reroll 1s
+// Returns new success probability struct with updated values.
+function reroll_1(prob){
+    var ret = {};
+    
+    ret.pass_chance = prob.pass_chance + prob.one_chance * prob.pass_chance;
+    ret.fail_chance = prob.fail_chance - prob.one_chance * prob.pass_chance;
+    ret.one_chance = prob.one_chance * prob.one_chance;
+    ret.six_chance = prob.six_chance + prob.one_chance * prob.six_chance;
+
+    return ret;
+}
+
+// Reroll all failed rolls
+// Returns new success probability struct with updated values.
+function reroll(prob){
+    var ret = {};
+    
+    ret.pass_chance = prob.pass_chance + prob.fail_chance * prob.pass_chance;
+    ret.fail_chance = prob.fail_chance * prob.fail_chance;
+    ret.one_chance = prob.fail_chance * prob.one_chance;
+    ret.six_chance = prob.six_chance + prob.fail_chance * prob.six_chance;
+
+    return ret;
+}
+
 function roll() {
     // Number of attacks
 
@@ -94,7 +120,6 @@ function roll() {
     var hit_stat = fetch_int_value('bs');
     var hit_mod = fetch_int_value('hit_mod');
     var hit_prob = success_chance(hit_stat, hit_mod);
-    var hits = filter_prob_array(attacks, hit_prob.pass_chance);
     var hit_title;
     if (hit_prob.pass_chance == 1) {
         hit_title = 'auto-hit';
@@ -109,6 +134,20 @@ function roll() {
             hit_title += ' (' + sign + hit_mod + ')';
         }
     }
+
+    // Rerolls
+    var hit_reroll_1 = is_checked('hit_reroll_1');
+    var hit_reroll = is_checked('hit_reroll');
+    if (hit_reroll) {
+        hit_title += ', reroll misses';
+        hit_prob = reroll(hit_prob);
+    } else if (hit_reroll_1) {
+        hit_title += ', reroll 1s';
+        hit_prob = reroll_1(hit_prob);
+    }
+
+    // Apply probability filter
+    var hits = filter_prob_array(attacks, hit_prob.pass_chance);
 
     // Hit of six generates extra hits
     var triple_hit_on_6 = is_checked('triple_hit_on_6');
@@ -161,13 +200,26 @@ function roll() {
     }
 
     var wound_prob = success_chance(wound_stat);
-    var wounds = filter_prob_array(hits, wound_prob.pass_chance);
     var wound_title;
     if (wound_prob.pass_chance == 1) {
         wound_title = 'auto-wound';
     } else {
         wound_title = 'wound on ' + wound_stat + '+';
     }
+
+    // Rerolls
+    var wound_reroll_1 = is_checked('wound_reroll_1');
+    var wound_reroll = is_checked('wound_reroll');
+    if (wound_reroll) {
+        wound_title += ', reroll misses';
+        wound_prob = reroll(wound_prob);
+    } else if (wound_reroll_1) {
+        wound_title += ', reroll 1s';
+        wound_prob = reroll_1(wound_prob);
+    }
+
+    // Apply probability filter
+    var wounds = filter_prob_array(hits, wound_prob.pass_chance);
 
     graph(wounds, wound_title, wound_chart);
 
@@ -479,7 +531,7 @@ function init() {
 }
 
 var fields = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'save_mod', 'invulnerable'];
-var checkboxes = ['triple_hit_on_6', 'cover'];
+var checkboxes = ['triple_hit_on_6', 'cover', 'hit_reroll_1', 'hit_reroll', 'wound_reroll_1', 'wound_reroll'];
 function generate_permalink() {
     var pairs = [];
     for(var i = 0; i < fields.length; i++) {
