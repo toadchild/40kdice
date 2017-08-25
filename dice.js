@@ -100,6 +100,14 @@ function roll() {
         hit_title = 'auto-hit';
     } else {
         hit_title = 'hit on ' + hit_stat + '+';
+
+        if (hit_mod) {
+            var sign = '';
+            if (hit_mod > 0) {
+                sign = '+';
+            }
+            hit_title += ' (' + sign + hit_mod + ')';
+        }
     }
 
     // Hit of six generates extra hits
