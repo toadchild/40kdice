@@ -280,22 +280,31 @@ function roll() {
     // Damage
 
     var damage_val = fetch_value('d');
+    var wound_val = fetch_value('wounds');
     var damage;
     if (damage_val.indexOf('d') == -1) {
         // If fixed damage, just multiply by the number of hits.
         var damage_prob = constant_prob_array(damage_val);
+        // TODO: Shake damage effects go here!
+        if (wound_val) {
+            damage_prob = clamp_prob_array(damage_prob, wound_val);
+        }
         damage = multiply_prob_arrays(unsaved, damage_prob);
     } else {
         // For variable damage, apply damage based on how many hits there are.
-        // For example, 3 hits at d6 damage is 3d6 damage, not d6 damage * 3.
+        var die_prob = dice_sum_prob_array(damage_val);
+        // TODO: Shake damage effects go here!
+        if (wound_val) {
+            die_prob = clamp_prob_array(die_prob, wound_val);
+        }
         damage = [];
         damage[0] = unsaved[0];
         for(var i = 1; i < unsaved.length; i++) {
             // Generate damage array for this many impacts.
-            hit_damage = dice_sum_prob_array(damage_val, i);
+            hit_damage = roll_n_dice(i, die_prob);
             // Add to the damage output, scaled by our current probability.
             for (var j = 0; j < hit_damage.length; j++) {
-                if (!damage[j]) {
+                if (damage[j] == null) {
                     damage[j] = 0;
                 }
                 damage[j] += unsaved[i] * hit_damage[j];
@@ -305,6 +314,28 @@ function roll() {
     var damage_title = 'damage dealt';
 
     graph(damage, damage_title, 'damage');
+
+    // Models Killed
+
+    var killed = [];
+    var killed_title = 'models killed';
+    if (wound_val) {
+        // We're just dividing the damage done by the number of wounds.
+        // Damage values are already clamped to the maximum number of
+        // wounds a model has.
+        for (var d = 0; d < damage.length; d++) {
+            if (damage[d] == null) {
+                continue;
+            }
+            var kills = Math.floor(d / wound_val);
+            if (killed[kills] == null) {
+                killed[kills] = 0;
+            }
+            killed[kills] += damage[d];
+        }
+    }
+
+    graph(killed, killed_title, 'killed');
 
     generate_permalink();
 }
@@ -412,7 +443,7 @@ function constant_prob_array(n) {
 
 // Returns a probability array for a specified number of dice in nDs notation.
 // Will also return a constant probability array if no 'd' is present.
-function dice_sum_prob_array(value, multiplier) {
+function dice_sum_prob_array(value) {
     var i = value.toLowerCase().indexOf('d');
     // No 'd', return constant probability.
     if (i == -1) {
@@ -422,53 +453,71 @@ function dice_sum_prob_array(value, multiplier) {
     if (isNaN(n) || n <= 0) {
         n = 1;
     }
-    if (multiplier) {
-        n *= multiplier;
-    }
-    var s = parseInt(value.substring(i + 1), 10);
-    if (isNaN(s) || s <= 0) {
-        s = 1;
+    var sides = parseInt(value.substring(i + 1), 10);
+    if (isNaN(sides) || sides <= 0) {
+        sides = 1;
     }
 
-    // We are rolling n s-sided dice.
-    // Count the ways: http://ghostlords.com/2008/03/dice-rolling-2/
+    var die_prob = [];
+    die_prob[0] = 0;
+    for (var i = 1; i <= sides; i++) {
+        die_prob[i] = 1.0 / sides;
+    }
 
-    var numresults = Math.pow(s, n);
+    return roll_n_dice(n, die_prob);
+}
 
+// Roll n dice with the given probability distribution.
+// http://ghostlords.com/2008/03/dice-rolling-2/
+// Modified to support dice with non-uniform probabilities.
+function roll_n_dice(n, die_prob) {
     // Make a pair of buffers.  Preload the values for 1 die in each.
     // We only enter the loop for 2+ dice.
     var counts = [];
     var oldcounts = [];
-    counts.length = n * s + 1;
-    oldcounts.length = n * s + 1;
+    var sides = die_prob.length - 1;
+    counts.length = n * sides + 1;
+    oldcounts.length = n * sides + 1;
     counts.fill(0);
     oldcounts.fill(0);
-    for (var i = 1; i <= s; i++) {
-        counts[i] = 1;
-        oldcounts[i] = 1;
+    for (var i = 1; i <= sides; i++) {
+        counts[i] = die_prob[i];
+        oldcounts[i] = die_prob[i];
     }
 
     for (var d = 2; d <= n; d++) {
         // Clear working buffer
         counts = [];
-        counts.length = s * n + 1;
+        counts.length = n * sides + 1;
         counts.fill(0);
 
         // For each face of the new die...
-        for (var i = 1; i <= s; i++) {
+        for (var i = 1; i <= sides; i++) {
             // Sum with old outcomes...
-            for (var j = d - 1; j <= (d - 1) * s; j++) {
-                // We have found oldcounts[j] new ways to reach i+j.
-                counts[i + j] += oldcounts[j];
+            for (var j = d - 1; j <= (d - 1) * sides; j++) {
+                // Combine probabilities of [i] and [j] to get [i+j]
+                counts[i + j] += die_prob[i] * oldcounts[j];
             }
         }
         oldcounts = counts;
     }
 
-    // Now turn the counts into probabilities.
-    var results = [];
-    for (var i = 0; i < counts.length; i++) {
-        results[i] = counts[i] / numresults;
+    return counts;
+}
+
+// Returns a probability array clamped to maximum value 'max'.
+// All probabilities > max are added into max.
+function clamp_prob_array(prob, max) {
+    results = [];
+    for (var i = 0; i < prob.length; i++) {
+        if (i <= max) {
+            results[i] = prob[i];
+        } else {
+            if (results[max] == null) {
+                results[max] = 0;
+            }
+            results[max] += prob[i];
+        }
     }
 
     return results;
@@ -547,6 +596,7 @@ function init() {
     charts['wound'] = init_chart('wound_chart', '% n wounds', '% >= n wounds');
     charts['unsaved'] = init_chart('unsaved_chart', '% n unsaved', '% >= n unsaved');
     charts['damage'] = init_chart('damage_chart', '% n damage', '% >= n damage');
+    charts['killed'] = init_chart('killed_chart', '% n killed', '% >= n killed');
 
     // Populate fields from the parameter string.
     var params = location.search.substring(1);
@@ -568,7 +618,7 @@ function init() {
     }
 }
 
-var fields = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'save_mod', 'invulnerable'];
+var fields = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'save_mod', 'invulnerable', 'wounds'];
 var checkboxes = ['triple_hit_on_6', 'cover', 'hit_reroll_1', 'hit_reroll', 'wound_reroll_1', 'wound_reroll'];
 function generate_permalink() {
     var pairs = [];
