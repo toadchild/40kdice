@@ -311,17 +311,38 @@ function roll() {
 
 // Binomial expansion.
 function binom(n, k) {
-    // n! / (k! * (n-k)!)
-    var numerator = 1;
+    // n! / (k! * (n - k)!)
+    
+    // In order to avoid floating point over/under-flow, I need to intersperse
+    // the operations.  This is less computationally efficient, since I'll do
+    // a lot more floating point division, but it will help ensure that neither
+    // the numerator nor denominator goes to "infinity".
+
+    // Numerator is what is left after canceling out n! / (n - k)!
+    // So (n - k + 1) * (n - k + 2) * ... * (n - 1) * n
+    var numerator = [];
     for (var i = n - k + 1; i <= n; i++) {
-        numerator *= i;
-    }
-    var denominator = 1;
-    for (var j = 2; j <= k; j++) {
-        denominator *= j;
+        numerator[numerator.length] = i;
     }
 
-    return numerator / denominator;
+    // Denominator is k!
+    var denominator = [];
+    for (var j = 2; j <= k; j++) {
+        denominator[denominator.length] = j;
+    }
+
+    var result = 1.0;
+    var length = Math.max(numerator.length, denominator.length);
+    for (var i = 0; i < length; i++) {
+        if (i < numerator.length) {
+            result *= numerator[i];
+        }
+        if (i < denominator.length) {
+            result /= denominator[i];
+        }
+    }
+
+    return result;
 }
 
 // Probability of successes given a number of trials and a probability.
@@ -344,6 +365,9 @@ function filter_prob_array(input_probs, probability) {
     var results = [];
     for(var i = 0; i < input_probs.length; i++) {
         if (input_probs[i] == null) {
+            continue;
+        }
+        if (input_probs[i] == 0) {
             continue;
         }
         // all outcomes given this many trials
