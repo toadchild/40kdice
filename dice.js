@@ -113,7 +113,7 @@ function roll() {
     var attacks = dice_sum_prob_array(hit_dice);
     var attack_title = hit_dice + ' attacks';
 
-    graph(attacks, attack_title, attack_chart);
+    graph(attacks, attack_title, 'attack');
 
     // Hits
 
@@ -180,7 +180,7 @@ function roll() {
         }
     }
 
-    graph(hits, hit_title, hit_chart);
+    graph(hits, hit_title, 'hit');
 
     // Wounds
 
@@ -221,7 +221,7 @@ function roll() {
     // Apply probability filter
     var wounds = filter_prob_array(hits, wound_prob.pass_chance);
 
-    graph(wounds, wound_title, wound_chart);
+    graph(wounds, wound_title, 'wound');
 
     // Saves
 
@@ -275,7 +275,7 @@ function roll() {
         }
     }
 
-    graph(unsaved, unsaved_title, unsaved_chart);
+    graph(unsaved, unsaved_title, 'unsaved');
 
     // Damage
 
@@ -304,7 +304,7 @@ function roll() {
     }
     var damage_title = 'damage dealt';
 
-    graph(damage, damage_title, damage_chart);
+    graph(damage, damage_title, 'damage');
 
     generate_permalink();
 }
@@ -464,11 +464,23 @@ function clean_graph_data(data) {
     return clean;
 }
 
-function graph(raw_data, title, chart) {
+function expected_value(data) {
+    var ev = 0.0;
+    for(var i = 0; i < data.length; i++) {
+        if (data[i]) {
+            ev += i * data[i];
+        }
+    }
+
+    return ev;
+}
+
+function graph(raw_data, title, chart_name) {
     var labels = [];
     var cumulative_data = [];
     var cumulative = 100.0;
     var data = [];
+    var chart = charts[chart_name];
 
     // Clean up data for graphing.
     for(var l = 0; l < raw_data.length; l++) {
@@ -495,20 +507,22 @@ function graph(raw_data, title, chart) {
     chart.data.labels = labels;
     chart.options.title.text = title;
     chart.update();
+
+    // Expected values
+    var text = document.getElementById(chart_name + '_text');
+    var ev = expected_value(raw_data);
+    ev = Math.round(ev * 100) / 100.0;
+    text.innerHTML = 'Expected: ' + ev;
 }
 
-var attack_chart;
-var hit_chart;
-var wound_chart;
-var unsaved_chart;
-var damage_chart;
+var charts = [];
 
 function init() {
-    attack_chart = init_chart('attack_chart', '% n attacks', '% >= n attacks');
-    hit_chart = init_chart('hit_chart', '% n hits', '% >= n hits');
-    wound_chart = init_chart('wound_chart', '% n wounds', '% >= n wounds');
-    unsaved_chart = init_chart('unsaved_chart', '% n unsaved', '% >= n unsaved');
-    damage_chart = init_chart('damage_chart', '% n damage', '% >= n damage');
+    charts['attack'] = init_chart('attack_chart', '% n attacks', '% >= n attacks');
+    charts['hit'] = init_chart('hit_chart', '% n hits', '% >= n hits');
+    charts['wound'] = init_chart('wound_chart', '% n wounds', '% >= n wounds');
+    charts['unsaved'] = init_chart('unsaved_chart', '% n unsaved', '% >= n unsaved');
+    charts['damage'] = init_chart('damage_chart', '% n damage', '% >= n damage');
 
     // Populate fields from the parameter string.
     var params = location.search.substring(1);
