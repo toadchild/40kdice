@@ -623,7 +623,9 @@ var checkboxes = ['triple_hit_on_6', 'cover', 'hit_reroll_1', 'hit_reroll', 'wou
 function generate_permalink() {
     var pairs = [];
     for(var i = 0; i < fields.length; i++) {
-        pairs[pairs.length] = fields[i] + '=' + document.getElementById(fields[i]).value;
+        if (document.getElementById(fields[i]).value) {
+            pairs[pairs.length] = fields[i] + '=' + document.getElementById(fields[i]).value;
+        }
     }
     for(var i = 0; i < checkboxes.length; i++) {
         if (document.getElementById(checkboxes[i]).checked) {
