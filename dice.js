@@ -583,6 +583,11 @@ function init_chart(chart_name, bar_label, line_label) {
                         beginAtZero:true,
                         min: 0
                     }
+                }],
+                xAxes: [{
+                    ticks: {
+                        maxRotation: 0
+                    }
                 }]
             },
             title: {
