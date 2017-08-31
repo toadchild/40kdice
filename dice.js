@@ -25,7 +25,7 @@ function success_chance(stat, modifier) {
     if (isNaN(stat)) {
         ret.pass_chance = 1.0;
         ret.fail_chance = 0.0;
-        ret.one_chance = 0.0;
+        ret.natural_fail_chance = 0.0;
         ret.six_chance = 0.0;
         return ret;
     }
@@ -56,24 +56,29 @@ function success_chance(stat, modifier) {
     // Modifiers are applied to the die roll, not the stat.
     // So if you have a -1, both 1 and 2 are treated as a result of 1
     // Similarly, if you have a +1, rolls of 1 and 2 are both treated as a 2.
-    // This is significant when it comes to reroll abilities.
+
+    // Rerolls, however, only care about the natural values.
+    // So a reroll of 1 is always a natural 1 and 'reroll failed' will not
+    // give you more rerolls for having taken a penalty.  However, reroll
+    // effects are 'may reroll', so you won't be forced to reroll a die that
+    // passes due to positive modifiers.
 
     if (modifier > 0) {
-        // positive modifiers eliminate result of 1 and increase 6+ range.
-        ret.one_chance = 0.0;
+        // Rerolls are optional, so only reroll things that will really fail.
+        ret.natural_fail_chance = 1.0 - (7 - modded_stat) / 6.0;
 
-        // Smallest die roll that counts as a result of 6.
+        // Positive modifiers increase 6+ range.
+        // Smallest die roll that counts as a result of 6 or more.
         var six_threshold = Math.max(modded_stat, 6 - modifier);
         ret.six_chance = (7 - six_threshold) / 6.0;
     } else if (modifier < 0) {
-        // negative modifiers eliminate results of 6 and increase 1 range.
-        ret.six_chance = 0.0;
+        // Unmodified fail chance.
+        ret.natural_fail_chance = 1.0 - (7 - stat) / 6.0;
 
-        // Largest die roll that counts as a result of 1.
-        var one_threshold = Math.min(6, 1 - modifier);
-        ret.one_chance = one_threshold / 6.0;
+        // negative modifiers eliminate results of 6+.
+        ret.six_chance = 0.0;
     } else {
-        ret.one_chance = 1.0 / 6.0;
+        ret.natural_fail_chance = ret.fail_chance;
         ret.six_chance = 1.0 / 6.0;
     }
 
@@ -84,11 +89,11 @@ function success_chance(stat, modifier) {
 // Returns new success probability struct with updated values.
 function reroll_1(prob){
     var ret = {};
-    
-    ret.pass_chance = prob.pass_chance + prob.one_chance * prob.pass_chance;
-    ret.fail_chance = prob.fail_chance - prob.one_chance * prob.pass_chance;
-    ret.one_chance = prob.one_chance * prob.one_chance;
-    ret.six_chance = prob.six_chance + prob.one_chance * prob.six_chance;
+
+    // Natural one happens 1/6 of the time.
+    ret.pass_chance = prob.pass_chance + prob.pass_chance / 6.0;
+    ret.fail_chance = 1.0 - ret.pass_chance;
+    ret.six_chance = prob.six_chance + prob.six_chance / 6.0;
 
     return ret;
 }
@@ -98,10 +103,9 @@ function reroll_1(prob){
 function reroll(prob){
     var ret = {};
     
-    ret.pass_chance = prob.pass_chance + prob.fail_chance * prob.pass_chance;
-    ret.fail_chance = prob.fail_chance * prob.fail_chance;
-    ret.one_chance = prob.fail_chance * prob.one_chance;
-    ret.six_chance = prob.six_chance + prob.fail_chance * prob.six_chance;
+    ret.pass_chance = prob.pass_chance + prob.natural_fail_chance * prob.pass_chance;
+    ret.fail_chance = 1.0 - ret.pass_chance;
+    ret.six_chance = prob.six_chance + prob.natural_fail_chance * prob.six_chance;
 
     return ret;
 }
