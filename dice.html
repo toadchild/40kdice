@@ -18,20 +18,27 @@
         <p>
         Hits of 6 generate
         <select id="extra_hits_on_6">
-            <option value="0">0</option>
+            <option value="">0</option>
             <option value="1">1</option>
             <option value="2">2</option>
         </select>
         extra hit(s)
-        <label><input type="checkbox" id="hit_reroll_1" value="1">Reroll hit rolls of 1</label>
-        <label><input type="checkbox" id="hit_reroll" value="1">Reroll failed hit rolls</label>
+        </p>
+        <p>
+        Reroll: <select id="hit_reroll">
+            <option value="">No hit rolls</option>
+            <option value="1">Hit rolls of 1</option>
+            <option value="fail">Failed hit rolls</option>
+        </select>
         </p>
         <p><label>S: <input type="text" id="s"></label></p>
         <p><label>AP: <input type="text" id="ap"></label></p>
         <p><label>D: <input type="text" id="d" value="1"></label></p>
-        <p>
-        <label><input type="checkbox" id="wound_reroll_1" value="1">Reroll wound rolls of 1</label>
-        <label><input type="checkbox" id="wound_reroll" value="1">Reroll failed wound rolls</label>
+        Reroll: <select id="wound_reroll">
+            <option value="">No wound rolls</option>
+            <option value="1">Wound rolls of 1</option>
+            <option value="fail">Failed wound rolls</option>
+        </select>
         </p>
     </div>
     <div>

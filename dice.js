@@ -140,12 +140,11 @@ function roll() {
     }
 
     // Rerolls
-    var hit_reroll_1 = is_checked('hit_reroll_1');
-    var hit_reroll = is_checked('hit_reroll');
-    if (hit_reroll) {
+    var hit_reroll = fetch_value('hit_reroll');
+    if (hit_reroll == 'fail') {
         hit_title += ', reroll misses';
         hit_prob = reroll(hit_prob);
-    } else if (hit_reroll_1) {
+    } else if (hit_reroll == '1') {
         hit_title += ', reroll 1s';
         hit_prob = reroll_1(hit_prob);
     }
@@ -213,12 +212,11 @@ function roll() {
     }
 
     // Rerolls
-    var wound_reroll_1 = is_checked('wound_reroll_1');
-    var wound_reroll = is_checked('wound_reroll');
-    if (wound_reroll) {
+    var wound_reroll = fetch_value('wound_reroll');
+    if (wound_reroll == 'fail') {
         wound_title += ', reroll misses';
         wound_prob = reroll(wound_prob);
-    } else if (wound_reroll_1) {
+    } else if (wound_reroll == '1') {
         wound_title += ', reroll 1s';
         wound_prob = reroll_1(wound_prob);
     }
@@ -626,8 +624,8 @@ function init() {
 }
 
 var fields = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'save_mod', 'invulnerable', 'wounds'];
-var checkboxes = ['cover', 'hit_reroll_1', 'hit_reroll', 'wound_reroll_1', 'wound_reroll'];
-var selects = ['extra_hits_on_6'];
+var checkboxes = ['cover'];
+var selects = ['extra_hits_on_6', 'hit_reroll', 'wound_reroll'];
 function generate_permalink() {
     var pairs = [];
     for(var i = 0; i < fields.length; i++) {
