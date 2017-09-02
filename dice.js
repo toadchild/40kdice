@@ -641,7 +641,6 @@ function generate_permalink() {
         }
     }
     for(var i = 0; i < selects.length; i++) {
-        console.log(selects[i]);
         if (document.getElementById(selects[i]).value) {
             pairs[pairs.length] = selects[i] + '=' + document.getElementById(selects[i]).value;;
         }
