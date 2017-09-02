@@ -16,7 +16,13 @@
         <p><label>BS/WS: <input type="text" id="bs"></label></p>
         <p><label>Hit Modifier: <input type="text" id="hit_mod"></label></p>
         <p>
-        <label><input type="checkbox" id="triple_hit_on_6" value="1">Hits of 6 generate 2 extra hits</label>
+        Hits of 6 generate
+        <select id="extra_hits_on_6">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+        </select>
+        extra hit(s)
         <label><input type="checkbox" id="hit_reroll_1" value="1">Reroll hit rolls of 1</label>
         <label><input type="checkbox" id="hit_reroll" value="1">Reroll failed hit rolls</label>
         </p>

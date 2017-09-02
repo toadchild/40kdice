@@ -154,13 +154,13 @@ function roll() {
     var hits = filter_prob_array(attacks, hit_prob.pass_chance);
 
     // Hit of six generates extra hits
-    var triple_hit_on_6 = is_checked('triple_hit_on_6');
-    if (triple_hit_on_6) {
-        hit_title += ', 6s do 3 hits';
+    var extra_hits_on_6 = fetch_int_value('extra_hits_on_6');
+    if (extra_hits_on_6) {
+        hit_title += ', 6s do ' + (extra_hits_on_6 + 1) + ' hits';
         // Probability of a six given that we hit.
         var six_prob = hit_prob.six_chance / hit_prob.pass_chance;
 
-        // Take hits from each column and move them two columns to the right.
+        // Take hits from each column and move them to the right.
         // Have to start from the top, or we'll apply to hits we already shifted up.
         // Also don't apply to misses.
         for (var h = hits.length - 1; h > 0; h--) {
@@ -172,13 +172,14 @@ function roll() {
                 for (var n = 1; n <= h; n++) {
                     var six_hits = prob(h, n, six_prob);
 
-                    // Move the hit from this column to [h + 2 * n]
+                    // Move the hit to [h + extra_hits_on_6 * n]
+                    var t = h + extra_hits_on_6 * n;
                     var six_delta = original_h_prob * six_hits;
                     hits[h] -= six_delta;
-                    if (hits[h + 2 * n] == null) {
-                        hits[h + 2 * n] = 0;
+                    if (hits[t] == null) {
+                        hits[t] = 0;
                     }
-                    hits[h + 2 * n] += six_delta;
+                    hits[t] += six_delta;
                 }
             }
         }
@@ -284,7 +285,7 @@ function roll() {
     // Damage
 
     var damage_val = fetch_value('d');
-    var wound_val = fetch_value('wounds');
+    var wound_val = fetch_int_value('wounds');
     var damage;
     if (damage_val.indexOf('d') == -1) {
         // If fixed damage, just multiply by the number of hits.
@@ -615,6 +616,8 @@ function init() {
                     document.getElementById(key).value = value;
                 } else if (checkboxes.indexOf(key) > -1) {
                     document.getElementById(key).checked = true;
+                } else if (selects.indexOf(key) > -1) {
+                    document.getElementById(key).value = value;
                 }
             }
             roll();
@@ -623,7 +626,8 @@ function init() {
 }
 
 var fields = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'save_mod', 'invulnerable', 'wounds'];
-var checkboxes = ['triple_hit_on_6', 'cover', 'hit_reroll_1', 'hit_reroll', 'wound_reroll_1', 'wound_reroll'];
+var checkboxes = ['cover', 'hit_reroll_1', 'hit_reroll', 'wound_reroll_1', 'wound_reroll'];
+var selects = ['extra_hits_on_6'];
 function generate_permalink() {
     var pairs = [];
     for(var i = 0; i < fields.length; i++) {
@@ -634,6 +638,12 @@ function generate_permalink() {
     for(var i = 0; i < checkboxes.length; i++) {
         if (document.getElementById(checkboxes[i]).checked) {
             pairs[pairs.length] = checkboxes[i];
+        }
+    }
+    for(var i = 0; i < selects.length; i++) {
+        console.log(selects[i]);
+        if (document.getElementById(selects[i]).value) {
+            pairs[pairs.length] = selects[i] + '=' + document.getElementById(selects[i]).value;;
         }
     }
     var query = pairs.join('&');
