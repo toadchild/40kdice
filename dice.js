@@ -110,6 +110,47 @@ function reroll(prob){
     return ret;
 }
 
+// Shake off damage
+// Returns a prob array reflecting the chance to ignore wounds.
+function shake_damage(damage_prob, shake) {
+    var results = [];
+    results.length = damage_prob.length;
+    results.fill(0.0);
+
+    if (shake == '6' || shake == '56') {
+        // Most abilities shake off individual points of damage
+        var shake_prob;
+        if (shake == '6') {
+            // Single roll of 6
+            shake_prob = 1.0 / 6.0;
+        } else if (shake == '56') {
+            // Single roll of 5 or 6
+            shake_prob = 1.0 / 3.0;
+        }
+
+        // Must work from left to right since we are moving results down.
+        for(var d = 1; d < damage_prob.length; d++) {
+            if (damage_prob[d] > 0) {
+                // Copy base probability
+                results[d] = damage_prob[d];
+
+                // Binomial theorem; chance of shaking off n wounds
+                for (var n = 1; n <= d; n++) {
+                    var shake_n_prob = prob(d, n, shake_prob);
+                    var delta = damage_prob[d] * shake_n_prob;
+                    results[d] -= delta;
+                    results[d - n] += delta;
+                }
+            }
+        }
+    } else {
+        // No shake effect
+        results = damage_prob;
+    }
+
+    return results;
+}
+
 function roll() {
     // Number of attacks
 
@@ -283,28 +324,37 @@ function roll() {
     // Damage
 
     var damage_val = fetch_value('d');
+    var damage_title = damage_val + ' damage';
     var wound_val = fetch_int_value('wounds');
+    var shake = fetch_value('shake');
+    if (shake) {
+        if (shake == '6') {
+            damage_title += ' (shake on 6)';
+        } else if (shake == '56') {
+            damage_title += ' (shake on 5,6)';
+        }
+    }
     var damage;
     if (damage_val.indexOf('d') == -1) {
         // If fixed damage, just multiply by the number of hits.
         var damage_prob = constant_prob_array(damage_val);
-        // TODO: Shake damage effects go here!
+        damage_prob = shake_damage(damage_prob, shake);
         if (wound_val) {
             damage_prob = clamp_prob_array(damage_prob, wound_val);
         }
         damage = multiply_prob_arrays(unsaved, damage_prob);
     } else {
         // For variable damage, apply damage based on how many hits there are.
-        var die_prob = dice_sum_prob_array(damage_val);
-        // TODO: Shake damage effects go here!
+        var damage_prob = dice_sum_prob_array(damage_val);
+        damage_prob = shake_damage(damage_prob, shake);
         if (wound_val) {
-            die_prob = clamp_prob_array(die_prob, wound_val);
+            damage_prob = clamp_prob_array(damage_prob, wound_val);
         }
         damage = [];
         damage[0] = unsaved[0];
         for(var i = 1; i < unsaved.length; i++) {
             // Generate damage array for this many impacts.
-            hit_damage = roll_n_dice(i, die_prob);
+            hit_damage = roll_n_dice(i, damage_prob);
             // Add to the damage output, scaled by our current probability.
             for (var j = 0; j < hit_damage.length; j++) {
                 if (damage[j] == null) {
@@ -314,7 +364,6 @@ function roll() {
             }
         }
     }
-    var damage_title = 'damage dealt';
 
     graph(damage, damage_title, 'damage');
 
@@ -473,6 +522,7 @@ function dice_sum_prob_array(value) {
 // Roll n dice with the given probability distribution.
 // http://ghostlords.com/2008/03/dice-rolling-2/
 // Modified to support dice with non-uniform probabilities.
+// Note that this includes dice that can roll a result of 0!
 function roll_n_dice(n, die_prob) {
     // Make a pair of buffers.  Preload the values for 1 die in each.
     // We only enter the loop for 2+ dice.
@@ -483,7 +533,7 @@ function roll_n_dice(n, die_prob) {
     oldcounts.length = n * sides + 1;
     counts.fill(0);
     oldcounts.fill(0);
-    for (var i = 1; i <= sides; i++) {
+    for (var i = 0; i <= sides; i++) {
         counts[i] = die_prob[i];
         oldcounts[i] = die_prob[i];
     }
@@ -495,9 +545,9 @@ function roll_n_dice(n, die_prob) {
         counts.fill(0);
 
         // For each face of the new die...
-        for (var i = 1; i <= sides; i++) {
+        for (var i = 0; i <= sides; i++) {
             // Sum with old outcomes...
-            for (var j = d - 1; j <= (d - 1) * sides; j++) {
+            for (var j = 0; j <= (d - 1) * sides; j++) {
                 // Combine probabilities of [i] and [j] to get [i+j]
                 counts[i + j] += die_prob[i] * oldcounts[j];
             }
@@ -625,7 +675,7 @@ function init() {
 
 var fields = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'save_mod', 'invulnerable', 'wounds'];
 var checkboxes = ['cover'];
-var selects = ['extra_hits_on_6', 'hit_reroll', 'wound_reroll'];
+var selects = ['extra_hits_on_6', 'hit_reroll', 'wound_reroll', 'shake'];
 function generate_permalink() {
     var pairs = [];
     for(var i = 0; i < fields.length; i++) {
