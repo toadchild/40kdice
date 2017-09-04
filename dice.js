@@ -116,6 +116,7 @@ function shake_damage(damage_prob, shake) {
     var results = [];
     results.length = damage_prob.length;
     results.fill(0.0);
+    results[0] = damage_prob[0];
 
     if (shake == '6' || shake == '56' || shake == '2x6') {
         // Most abilities shake off individual points of damage
@@ -144,6 +145,28 @@ function shake_damage(damage_prob, shake) {
                     results[d] -= delta;
                     results[d - n] += delta;
                 }
+            }
+        }
+    } else if (shake == 'quantum') {
+        // Quantum Shielding ignores all damage if a single die rolls
+        // under the damage amount.
+        
+        // Can't roll less than 1.
+        if (damage_prob.length > 1) {
+            results[1] = damage_prob[1];
+        }
+
+        // For damage values of 2 - 6, increasing chances of being negated.
+        for(var d = 2; d < damage_prob.length; d++) {
+            if (d > 6) {
+                // Damage > 6 should be impossible, but will always fail.
+                results[0] += damage_prob[d];
+            } else {
+                // Chance to negate depends on d
+                var negate_chance = (d - 1) / 6.0;
+
+                results[0] += damage_prob[d] * negate_chance;
+                results[d] = damage_prob[d] * (1 - negate_chance);
             }
         }
     } else {
@@ -337,6 +360,8 @@ function roll() {
             damage_title += ' (2x shake on 6)';
         } else if (shake == '56') {
             damage_title += ' (shake on 5,6)';
+        } else if (shake == 'quantum') {
+            damage_title += ' (quantum shield)';
         }
     }
     var damage;
