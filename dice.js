@@ -632,13 +632,9 @@ function graph(raw_data, title, chart_name) {
         // Generate rounded percentage point values.
         var clean = Math.round(raw_data[l] * 1000) / 10.0;
 
-        // Skip values of 0
-        if (clean > 0) {
-            var i = data.length;
-            data[i] = clean;
-            labels[i] = l;
-            cumulative_data[i] = Math.round(cumulative * 10) / 10.0;
-        }
+        data[l] = clean;
+        labels[l] = l;
+        cumulative_data[l] = Math.round(cumulative * 10) / 10.0;
 
         // Decrement cumulative probability.
         // Note that this uses the true value, not the cleaned value.
