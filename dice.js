@@ -364,34 +364,23 @@ function roll() {
             damage_title += ' (quantum shield)';
         }
     }
-    var damage;
-    if (damage_val.indexOf('d') == -1) {
-        // If fixed damage, just multiply by the number of hits.
-        var damage_prob = constant_prob_array(damage_val);
-        damage_prob = shake_damage(damage_prob, shake);
-        if (wound_val) {
-            damage_prob = clamp_prob_array(damage_prob, wound_val);
-        }
-        damage = multiply_prob_arrays(unsaved, damage_prob);
-    } else {
-        // For variable damage, apply damage based on how many hits there are.
-        var damage_prob = dice_sum_prob_array(damage_val);
-        damage_prob = shake_damage(damage_prob, shake);
-        if (wound_val) {
-            damage_prob = clamp_prob_array(damage_prob, wound_val);
-        }
-        damage = [];
-        damage[0] = unsaved[0];
-        for(var i = 1; i < unsaved.length; i++) {
-            // Generate damage array for this many impacts.
-            hit_damage = roll_n_dice(i, damage_prob);
-            // Add to the damage output, scaled by our current probability.
-            for (var j = 0; j < hit_damage.length; j++) {
-                if (damage[j] == null) {
-                    damage[j] = 0;
-                }
-                damage[j] += unsaved[i] * hit_damage[j];
+    var damage_prob = dice_sum_prob_array(damage_val);
+    damage_prob = shake_damage(damage_prob, shake);
+    if (wound_val) {
+        damage_prob = clamp_prob_array(damage_prob, wound_val);
+    }
+    var damage = [];
+    damage[0] = unsaved[0];
+    // Apply damage based on how many hits there are.
+    for(var i = 1; i < unsaved.length; i++) {
+        // Generate damage array for this many impacts.
+        hit_damage = roll_n_dice(i, damage_prob);
+        // Add to the damage output, scaled by our current probability.
+        for (var j = 0; j < hit_damage.length; j++) {
+            if (damage[j] == null) {
+                damage[j] = 0;
             }
+            damage[j] += unsaved[i] * hit_damage[j];
         }
     }
 
