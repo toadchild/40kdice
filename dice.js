@@ -571,20 +571,6 @@ function clamp_prob_array(prob, max) {
     return results;
 }
 
-function clean_graph_data(data) {
-    var clean = [];
-
-    for (var i = 0; i < data.length; i++) {
-    }
-
-    // Drop zeroes off the end
-    while (clean.length && (clean[clean.length - 1] == 0)) {
-        clean.length--;
-    }
-
-    return clean;
-}
-
 function expected_value(data) {
     var ev = 0.0;
     for(var i = 0; i < data.length; i++) {
@@ -617,6 +603,13 @@ function graph(raw_data, title, chart_name) {
         if (raw_data[l] != null) {
             cumulative -= raw_data[l] * 100;
         }
+    }
+
+    // Drop zeroes off the end
+    while (data.length && (data[data.length - 1] == 0)) {
+        data.length--;
+        cumulative_data.length--;
+        labels.length--;
     }
 
     chart.data.datasets[0].data = data;
