@@ -485,40 +485,17 @@ function filter_prob_array(input_probs, probability) {
     return results
 }
 
-// Takes two probability arrays, returns a new probability array made by
-// multiplying all values by each other.
-function multiply_prob_arrays(first, second) {
-    var results = [];
-    for (var i = 0; i < first.length; i++) {
-        for (var j = 0; j < second.length; j++) {
-            var r = i * j;
-            var val = first[i] * second[j];
-            if (results[r] == null) {
-                results[r] = 0;
-            }
-            results[r] += val;
-        }
-    }
-
-    return results;
-}
-
-// Returns a probability array for a specific guaranteed number.
-function constant_prob_array(n) {
-    var results = [];
-    results.length = n;
-    results.fill(0);
-    results[results.length] = 1;
-    return results;
-}
-
 // Returns a probability array for a specified number of dice in nDs notation.
 // Will also return a constant probability array if no 'd' is present.
 function dice_sum_prob_array(value) {
+    var die_prob = [];
     var i = value.toLowerCase().indexOf('d');
     // No 'd', return constant probability.
     if (i == -1) {
-        return constant_prob_array(value);
+        die_prob.length = value;
+        die_prob.fill(0);
+        die_prob[die_prob.length] = 1;
+        return die_prob;
     }
     var n = parseInt(value.substring(0, i), 10);
     if (isNaN(n) || n <= 0) {
@@ -529,7 +506,6 @@ function dice_sum_prob_array(value) {
         sides = 1;
     }
 
-    var die_prob = [];
     die_prob[0] = 0;
     for (var i = 1; i <= sides; i++) {
         die_prob[i] = 1.0 / sides;
