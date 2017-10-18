@@ -1,4 +1,4 @@
-INSTALL_PATH=$(HOME)/public_html/40k
+INSTALL_PATH=/var/www/40k/dice/
 
 install:
 	cp dice.* $(INSTALL_PATH)
