@@ -224,8 +224,8 @@ function roll() {
     if (extra_on_6) {
         // Probability of a six given that we hit.
         var six_prob = hit_prob.six_chance / hit_prob.pass_chance;
-        var bonus_hits;
-        var bonus_hit_prob;
+        var bonus_hits = 0;
+        var bonus_hit_prob = 0;
 
         if (extra_on_6 == '2') {
             hit_title += ', 6s do 3 hits';
