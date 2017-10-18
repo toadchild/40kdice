@@ -274,7 +274,9 @@ function roll() {
     var s = fetch_int_value('s');
     var t = fetch_int_value('t');
     var wound_stat;
-    if (t >= s * 2) {
+    if (!s || !t) {
+        wound_stat = Number.NaN;
+    } else if (t >= s * 2) {
         wound_stat = 6;
     } else if (t > s) {
         wound_stat = 5;
