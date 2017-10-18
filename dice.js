@@ -220,11 +220,22 @@ function roll() {
     var hits = filter_prob_array(attacks, hit_prob.pass_chance);
 
     // Hit of six generates extra hits
-    var extra_hits_on_6 = fetch_int_value('extra_hits_on_6');
-    if (extra_hits_on_6) {
-        hit_title += ', 6s do ' + (extra_hits_on_6 + 1) + ' hits';
+    var extra_on_6 = fetch_value('extra_on_6');
+    if (extra_on_6) {
         // Probability of a six given that we hit.
         var six_prob = hit_prob.six_chance / hit_prob.pass_chance;
+        var bonus_hits;
+        var bonus_hit_prob;
+
+        if (extra_on_6 == '2') {
+            hit_title += ', 6s do 3 hits';
+            bonus_hits = 2;
+            bonus_hit_prob = 1.0;
+        } else if (extra_on_6 == '1roll') {
+            hit_title += ', 6s add 1 hit roll';
+            bonus_hits = 1;
+            bonus_hit_prob = hit_prob.pass_chance;
+        }
 
         // Take hits from each column and move them to the right.
         // Have to start from the top, or we'll apply to hits we already shifted up.
@@ -236,16 +247,21 @@ function roll() {
 
                 // Use binomial theorem to find out how likely it is to get n sixes on h dice.
                 for (var n = 1; n <= h; n++) {
-                    var six_hits = prob(h, n, six_prob);
+                    var n_six_hit_prob = prob(h, n, six_prob);
 
-                    // Move the hit to [h + extra_hits_on_6 * n]
-                    var t = h + extra_hits_on_6 * n;
-                    var six_delta = original_h_prob * six_hits;
-                    hits[h] -= six_delta;
-                    if (hits[t] == null) {
-                        hits[t] = 0;
+                    // Binomial again to see how many of the bonus hits hit.
+                    for (var b = 1; b <= bonus_hits * n; b++) {
+                        var b_prob = prob(bonus_hits * n, b, bonus_hit_prob);
+                        if (b_prob) {
+                            var target = h + b;
+                            var six_delta = original_h_prob * n_six_hit_prob * b_prob;
+                            hits[h] -= six_delta;
+                            if (hits[target] == null) {
+                                hits[target] = 0;
+                            }
+                            hits[target] += six_delta;
+                        }
                     }
-                    hits[t] += six_delta;
                 }
             }
         }
@@ -659,7 +675,7 @@ function init() {
 
 var fields = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'save_mod', 'invulnerable', 'wounds'];
 var checkboxes = ['cover'];
-var selects = ['extra_hits_on_6', 'hit_reroll', 'wound_reroll', 'shake'];
+var selects = ['extra_on_6', 'hit_reroll', 'wound_reroll', 'shake'];
 function generate_permalink() {
     var pairs = [];
     for(var i = 0; i < fields.length; i++) {
