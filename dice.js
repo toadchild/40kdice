@@ -318,6 +318,7 @@ function roll() {
     var ap_val = fetch_int_value('ap');
     var save_mod = fetch_int_value('save_mod');
     var cover = is_checked('cover');
+    var save_reroll = fetch_value('save_reroll');
     // Always treat AP as negative
     ap_val = -Math.abs(ap_val);
     if (isNaN(save_mod)) {
@@ -332,48 +333,66 @@ function roll() {
     }
     var use_invuln = false;
 
-    // Invulnerable save ignores AP and cover bonus, but not other modifiers.
-    if (isNaN(save_stat) || save_stat - total_save_mod > invuln_stat - save_mod) {
-        save_stat = invuln_stat;
-        total_save_mod = save_mod;
-        use_invuln = true;
-    }
-
     // Auto-fail the save if no save stat given.
     if (isNaN(save_stat)) {
         save_stat = 100;
     }
+    if (isNaN(invuln_stat)) {
+        invuln_stat = 100;
+    }
 
+    // Normal save.
     var save_prob = success_chance(save_stat, total_save_mod);
-    var save_reroll = fetch_value('save_reroll');
-    var save_reroll_title = '';
-    if (save_reroll == 'fail') {
-        save_reroll_title += ', reroll failures';
+    var save_title = 'save of ' + save_stat + '+';
+    if (total_save_mod) {
+        var sign = '';
+        if (total_save_mod > 0) {
+            sign = '+';
+        }
+        save_title += ' (' + sign + total_save_mod + ')';
+    }
+    if (save_reroll == 'fail' || (use_invuln && save_reroll == 'inv_fail')) {
+        save_title += ', reroll failures';
         save_prob = reroll(save_prob);
-    } else if (save_reroll == '1') {
-        save_reroll_title += ', reroll 1s';
+    } else if (save_reroll == '1' || (use_invuln && save_reroll == 'inv_1')) {
+        save_title += ', reroll 1s';
         save_prob = reroll_1(save_prob);
     }
 
-    var unsaved = filter_prob_array(wounds, save_prob.fail_chance);
+    // Invulnerable save; ignores AP and cover, but includes other modifiers.
+    var invuln_prob = success_chance(invuln_stat, save_mod);
+    var invuln_title = 'save of ' + invuln_stat + '++';
+    if (save_mod) {
+        var sign = '';
+        if (save_mod > 0) {
+            sign = '+';
+        }
+        invuln_title += ' (' + sign + save_mod + ')';
+    }
+    if (save_reroll == 'inv_fail') {
+        invuln_title += ', reroll failures';
+        invuln_prob = reroll(invuln_prob);
+    } else if (save_reroll == 'inv_1') {
+        invuln_title += ', reroll 1s';
+        invuln_prob = reroll_1(invuln_prob);
+    }
+
+    // Use whichever save is better.  Includes rerolls.
+    var unsaved_prob;
     var unsaved_title;
+    if (invuln_prob.pass_chance > save_prob.pass_chance) {
+        unsaved_prob = invuln_prob.fail_chance;
+        unsaved_title = invuln_title;
+    } else {
+        unsaved_prob = save_prob.fail_chance;
+        unsaved_title = save_title;
+    }
+
+    var unsaved = filter_prob_array(wounds, unsaved_prob);
 
     if (save_prob.fail_chance == 1) {
         unsaved_title = 'auto-fail save';
-    } else {
-        unsaved_title = 'save of ' + save_stat + '+';
-        if (use_invuln) {
-            unsaved_title += '+';
-        }
-        if (total_save_mod) {
-            var sign = '';
-            if (total_save_mod > 0) {
-                sign = '+';
-            }
-            unsaved_title += ' (' + sign + total_save_mod + ')';
-        }
     }
-    unsaved_title += save_reroll_title;
 
     graph(unsaved, unsaved_title, 'unsaved');
 
