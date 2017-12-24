@@ -344,10 +344,21 @@ function roll() {
         save_stat = 100;
     }
 
-    var saved_prob = success_chance(save_stat, total_save_mod);
-    var unsaved = filter_prob_array(wounds, saved_prob.fail_chance);
+    var save_prob = success_chance(save_stat, total_save_mod);
+    var save_reroll = fetch_value('save_reroll');
+    var save_reroll_title = '';
+    if (save_reroll == 'fail') {
+        save_reroll_title += ', reroll failures';
+        save_prob = reroll(save_prob);
+    } else if (save_reroll == '1') {
+        save_reroll_title += ', reroll 1s';
+        save_prob = reroll_1(save_prob);
+    }
+
+    var unsaved = filter_prob_array(wounds, save_prob.fail_chance);
     var unsaved_title;
-    if (saved_prob.fail_chance == 1) {
+
+    if (save_prob.fail_chance == 1) {
         unsaved_title = 'auto-fail save';
     } else {
         unsaved_title = 'save of ' + save_stat + '+';
@@ -362,6 +373,7 @@ function roll() {
             unsaved_title += ' (' + sign + total_save_mod + ')';
         }
     }
+    unsaved_title += save_reroll_title;
 
     graph(unsaved, unsaved_title, 'unsaved');
 
@@ -677,7 +689,7 @@ function init() {
 
 var fields = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'save_mod', 'invulnerable', 'wounds'];
 var checkboxes = ['cover'];
-var selects = ['extra_on_6', 'hit_reroll', 'wound_reroll', 'shake'];
+var selects = ['extra_on_6', 'hit_reroll', 'wound_reroll', 'shake', 'save_reroll'];
 function generate_permalink() {
     var pairs = [];
     for(var i = 0; i < fields.length; i++) {
