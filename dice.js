@@ -640,6 +640,9 @@ function graph(raw_data, title, chart_name) {
 
     // Clean up data for graphing.
     for(var l = 0; l < raw_data.length; l++) {
+        if (raw_data[l] == null) {
+            raw_data[l] = 0.0;
+        }
         // Generate rounded percentage point values.
         var clean = Math.round(raw_data[l] * 1000) / 10.0;
 
