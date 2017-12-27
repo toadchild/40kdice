@@ -220,18 +220,18 @@ function roll() {
     var hits = filter_prob_array(attacks, hit_prob.pass_chance);
 
     // Hit of six generates extra hits
-    var extra_on_6 = fetch_value('extra_on_6');
-    if (extra_on_6) {
+    var hit_of_6 = fetch_value('hit_of_6');
+    if (hit_of_6) {
         // Probability of a six given that we hit.
         var six_prob = hit_prob.six_chance / hit_prob.pass_chance;
         var bonus_hits = 0;
         var bonus_hit_prob = 0;
 
-        if (extra_on_6 == '2') {
+        if (hit_of_6 == '2') {
             hit_title += ', 6s do 3 hits';
             bonus_hits = 2;
             bonus_hit_prob = 1.0;
-        } else if (extra_on_6 == '1roll') {
+        } else if (hit_of_6 == '1roll') {
             hit_title += ', 6s add 1 hit roll';
             bonus_hits = 1;
             bonus_hit_prob = hit_prob.pass_chance;
@@ -319,6 +319,7 @@ function roll() {
     var save_mod = fetch_int_value('save_mod');
     var cover = is_checked('cover');
     var save_reroll = fetch_value('save_reroll');
+    var wound_of_6 = fetch_value('wound_of_6');
     // Always treat AP as negative
     ap_val = -Math.abs(ap_val);
     if (isNaN(save_mod)) {
@@ -351,10 +352,10 @@ function roll() {
         }
         save_title += ' (' + sign + total_save_mod + ')';
     }
-    if (save_reroll == 'fail' || (use_invuln && save_reroll == 'inv_fail')) {
+    if (save_reroll == 'fail') {
         save_title += ', reroll failures';
         save_prob = reroll(save_prob);
-    } else if (save_reroll == '1' || (use_invuln && save_reroll == 'inv_1')) {
+    } else if (save_reroll == '1') {
         save_title += ', reroll 1s';
         save_prob = reroll_1(save_prob);
     }
@@ -375,6 +376,31 @@ function roll() {
     } else if (save_reroll == 'inv_1') {
         invuln_title += ', reroll 1s';
         invuln_prob = reroll_1(invuln_prob);
+    }
+
+    // wounds of 6 get -1 additional AP
+    if (wound_of_6 == '-1') {
+        // Probability of a six given that we wound.
+        var six_prob = wound_prob.six_chance / wound_prob.pass_chance;
+
+        // calculate save chance with modified AP.
+        var ap_save_prob = success_chance(save_stat, total_save_mod - 1);
+        if (save_reroll == 'fail') {
+            ap_save_prob = reroll(ap_save_prob);
+        } else if (save_reroll == '1') {
+            ap_save_prob = reroll_1(ap_save_prob);
+        }
+
+        // But don't use it if it's worse than the invulnerable save.
+        if (invuln_prob.pass_chance > ap_save_prob.pass_chance) {
+            ap_save_prob = invuln_prob;
+        }
+
+        // Set the save chance as a weighted combination of normal hits
+        // and AP-1 hits.
+        // 1 chance and 6 chance are no longer accurate.
+        save_prob.pass_chance = six_prob * ap_save_prob.pass_chance + (1 - six_prob) * save_prob.pass_chance;
+        save_prob.fail_chance = six_prob * ap_save_prob.fail_chance + (1 - six_prob) * save_prob.fail_chance;
     }
 
     // Use whichever save is better.  Includes rerolls.
@@ -414,6 +440,7 @@ function roll() {
         }
     }
     var damage_prob = dice_sum_prob_array(damage_val);
+
     damage_prob = shake_damage(damage_prob, shake);
     if (wound_val) {
         damage_prob = clamp_prob_array(damage_prob, wound_val);
@@ -711,7 +738,7 @@ function init() {
 
 var fields = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'save_mod', 'invulnerable', 'wounds'];
 var checkboxes = ['cover'];
-var selects = ['extra_on_6', 'hit_reroll', 'wound_reroll', 'shake', 'save_reroll'];
+var selects = ['hit_of_6', 'hit_reroll', 'wound_of_6', 'wound_reroll', 'save_reroll', 'shake'];
 function generate_permalink() {
     var pairs = [];
     for(var i = 0; i < fields.length; i++) {

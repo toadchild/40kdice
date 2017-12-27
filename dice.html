@@ -16,8 +16,8 @@
         <p><label>BS/WS: <input type="text" id="bs"></label></p>
         <p><label>Hit Modifier: <input type="text" id="hit_mod"></label></p>
         <p>
-        Hits of 6:
-        <select id="extra_on_6">
+        Hit rolls of 6:
+        <select id="hit_of_6">
             <option value="">Do nothing speical</option>
             <option value="1roll">Generate 1 extra hit roll</option>
             <option value="2">Generate 2 extra hits</option>
@@ -33,6 +33,14 @@
         <p><label>S: <input type="text" id="s"></label></p>
         <p><label>AP: <input type="text" id="ap"></label></p>
         <p><label>D: <input type="text" id="d" value="1"></label></p>
+        <p>
+        Wound rolls of 6:
+        <select id="wound_of_6">
+            <option value="">Do nothing speical</option>
+            <option value="-1">Are resolved with -1 to AP</option>
+        </select>
+        </p>
+        <p>
         Reroll: <select id="wound_reroll">
             <option value="">No wound rolls</option>
             <option value="1">Wound rolls of 1</option>
