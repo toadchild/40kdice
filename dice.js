@@ -379,12 +379,13 @@ function roll() {
     }
 
     // wounds of 6 get -1 additional AP
-    if (wound_of_6 == '-1') {
+    if (wound_of_6 == '-1' || wound_of_6 == '-3' || wound_of_6 == '-4') {
         // Probability of a six given that we wound.
         var six_prob = wound_prob.six_chance / wound_prob.pass_chance;
+        var ap_mod = parseInt(wound_of_6, 10);
 
         // calculate save chance with modified AP.
-        var ap_save_prob = success_chance(save_stat, total_save_mod - 1);
+        var ap_save_prob = success_chance(save_stat, total_save_mod + ap_mod);
         if (save_reroll == 'fail') {
             ap_save_prob = reroll(ap_save_prob);
         } else if (save_reroll == '1') {
