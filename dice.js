@@ -460,6 +460,39 @@ function roll() {
         }
     }
 
+    // Add extra damage points for mortal wounds.
+    if (wound_of_6 == '+mortal') {
+        // Probability of a six given that we wound.
+        var six_chance = wound_prob.six_chance / wound_prob.pass_chance;
+        // Should be less for shake effects.
+        var base_mortal_prob = [1 - six_chance, six_chance];
+        var mortal_damage_chance = shake_damage(base_mortal_prob, shake)[1];
+
+        // Take damage from each column and move them to the right.
+        // Have to start from the top, or we'll apply to damage we already shifted up.
+        for (var d = damage.length - 1; d >= 0; d--) {
+            if (damage[d] > 0) {
+                // We may decrement this multiple times.  Need to keep the original reference.
+                var original_d_prob = damage[d];
+
+                for (var w = 0; w < wounds.length; w++) {
+                    // Use binomial theorem to find out how likely it is to get n sixes on w dice.
+                    for (var n = 1; n <= w; n++) {
+                        var n_six_prob = prob(w, n, mortal_damage_chance);
+
+                        var target = d + n;
+                        var six_delta = original_d_prob * wounds[w] * n_six_prob;
+                        damage[d] -= six_delta;
+                        if (damage[target] == null) {
+                            damage[target] = 0;
+                        }
+                        damage[target] += six_delta;
+                    }
+                }
+            }
+        }
+    }
+
     graph(damage, damage_title, 'damage');
 
     // Models Killed
