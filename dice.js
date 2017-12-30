@@ -709,7 +709,7 @@ function graph(raw_data, title, chart_name) {
 
         data[l] = clean;
         labels[l] = l;
-        cumulative_data[l] = Math.round(cumulative * 10) / 10.0;
+        cumulative_data[l] = {x: l, y: Math.round(cumulative * 10) / 10.0};
 
         // Decrement cumulative probability.
         // Note that this uses the true value, not the cleaned value.
@@ -725,28 +725,32 @@ function graph(raw_data, title, chart_name) {
         labels.length--;
     }
 
-    chart.data.datasets[0].data = data;
-    chart.data.datasets[1].data = cumulative_data;
-    chart.data.labels = labels;
-    chart.options.title.text = title;
-    chart.update();
-
     // Expected values
     var text = document.getElementById(chart_name + '_text');
     var ev = expected_value(raw_data);
     ev = Math.round(ev * 100) / 100.0;
     text.innerHTML = 'Expected: ' + ev;
+    var ev_points = [{x:ev, y:0}, {x:ev, y:100}];
+
+    chart.data.datasets[0].data = data;
+    chart.data.datasets[1].data = cumulative_data;
+    chart.data.datasets[2].data = ev_points;
+    chart.data.labels = labels;
+    chart.options.title.text = title;
+    chart.options.scales.xAxes[1].ticks.max = data.length - 0.5;
+    chart.options.scales.xAxes[2].ticks.max = data.length;
+    chart.update();
 }
 
 var charts = [];
 
 function init() {
-    charts['attack'] = init_chart('attack_chart', '% n attacks', '% >= n attacks');
-    charts['hit'] = init_chart('hit_chart', '% n hits', '% >= n hits');
-    charts['wound'] = init_chart('wound_chart', '% n wounds', '% >= n wounds');
-    charts['unsaved'] = init_chart('unsaved_chart', '% n unsaved', '% >= n unsaved');
-    charts['damage'] = init_chart('damage_chart', '% n damage', '% >= n damage');
-    charts['killed'] = init_chart('killed_chart', '% n killed', '% >= n killed');
+    charts['attack'] = init_chart('attack_chart', '{n} attacks: ', '>= {n} attacks: ', 'expected: {n} attacks');
+    charts['hit'] = init_chart('hit_chart', '{n} hits: ', '>= {n} hits: ', 'expected: {n} hits');
+    charts['wound'] = init_chart('wound_chart', '{n} wounds: ', '>= {n} wounds: ', 'expected: {n} wounds');
+    charts['unsaved'] = init_chart('unsaved_chart', '{n} unsaved: ', '>= {n} unsaved: ', 'expected: {n} unsaved');
+    charts['damage'] = init_chart('damage_chart', '{n} damage: ', '>= {n} damage: ', 'expected: {n} damage');
+    charts['killed'] = init_chart('killed_chart', '{n} killed: ', '>= {n} killed: ', 'expected: {n} killed');
 
     // Populate fields from the parameter string.
     var params = location.search.substring(1);
@@ -795,21 +799,30 @@ function generate_permalink() {
     document.getElementById('permalink').href = urlbase + '?' + query;
 }
 
-function init_chart(chart_name, bar_label, line_label) {
+function init_chart(chart_name, bar_label, line_label, ev_label) {
     var ctx = document.getElementById(chart_name);
     return new Chart(ctx, {
         type: 'bar',
         data: {
             labels: [],
-            datasets: [{
-                label: bar_label,
-                data: []
-            }, {
-                label: line_label,
-                data: [],
-                type: 'line',
-                cubicInterpolationMode: 'monotone'
-            }]
+            datasets: [
+                {
+                    label: bar_label,
+                    xAxisID: 'labels',
+                    data: []
+                }, {
+                    label: line_label,
+                    xAxisID: 'cumulative',
+                    data: [],
+                    type: 'line',
+                    cubicInterpolationMode: 'monotone'
+                }, {
+                    label: ev_label,
+                    xAxisID: 'true',
+                    data: [],
+                    type: 'line'
+                }
+            ]
         },
         options: {
             scales: {
@@ -819,17 +832,51 @@ function init_chart(chart_name, bar_label, line_label) {
                         min: 0
                     }
                 }],
-                xAxes: [{
-                    ticks: {
-                        maxRotation: 0
+                xAxes: [
+                    {
+                        id: 'labels',
+                        ticks: {
+                            maxRotation: 0
+                        }
+                    },
+                    {
+                        id: 'cumulative',
+                        type: 'linear',
+                        display: false,
+                        ticks: {
+                            min: -0.5
+                        }
+                    },
+                    {
+                        id: 'true',
+                        type: 'linear',
+                        display: false,
+                        ticks: {
+                            min: 0
+                        }
                     }
-                }]
+                ]
             },
             title: {
                 display: true
             },
             legend: {
                 display: false
+            },
+            tooltips: {
+                callbacks: {
+                    title: function(itemArray, chart) {
+                        return '';
+                    },
+                    label: function(item, chart) {
+                        if (item.datasetIndex == 2) {
+                            // Expected value
+                            return chart.datasets[item.datasetIndex].label.replace('{n}', item.xLabel);
+                        } else {
+                            return chart.datasets[item.datasetIndex].label.replace('{n}', item.xLabel) + item.yLabel + '%';
+                        }
+                    }
+                }
             }
         }
     });
