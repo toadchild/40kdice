@@ -809,16 +809,24 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
                 {
                     label: bar_label,
                     xAxisID: 'labels',
+                    borderColor: 'rgba(128, 0, 128, 0.2)',
+                    backgroundColor: 'rgba(128, 0, 128, 0.2)',
                     data: []
                 }, {
                     label: line_label,
                     xAxisID: 'cumulative',
+                    borderColor: 'rgba(0, 128, 128, 0.2)',
+                    backgroundColor: 'rgba(0, 128, 128, 0.2)',
+                    pointBackgroundColor: 'rgba(0, 128, 128, 0.2)',
                     data: [],
                     type: 'line',
                     cubicInterpolationMode: 'monotone'
                 }, {
                     label: ev_label,
                     xAxisID: 'true',
+                    borderColor: 'rgba(128, 64, 0, 0.2)',
+                    backgroundColor: 'rgba(128, 64, 0, 0.2)',
+                    pointBackgroundColor: 'rgba(128, 64, 0, 0.2)',
                     data: [],
                     type: 'line'
                 }
