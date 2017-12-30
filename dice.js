@@ -807,7 +807,8 @@ function init_chart(chart_name, bar_label, line_label) {
             }, {
                 label: line_label,
                 data: [],
-                type: 'line'
+                type: 'line',
+                cubicInterpolationMode: 'monotone'
             }]
         },
         options: {
