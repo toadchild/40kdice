@@ -724,6 +724,7 @@ function graph(raw_data, title, chart_name) {
         cumulative_data.length--;
         labels.length--;
     }
+    cumulative_data.push({x: cumulative_data.length, y: 0});
 
     // Expected values
     var text = document.getElementById(chart_name + '_text');
@@ -737,8 +738,7 @@ function graph(raw_data, title, chart_name) {
     chart.data.datasets[2].data = ev_points;
     chart.data.labels = labels;
     chart.options.title.text = title;
-    chart.options.scales.xAxes[1].ticks.max = data.length - 0.5;
-    chart.options.scales.xAxes[2].ticks.max = data.length;
+    chart.options.scales.xAxes[1].ticks.max = data.length;
     chart.update();
 }
 
@@ -814,7 +814,7 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
                     data: []
                 }, {
                     label: line_label,
-                    xAxisID: 'cumulative',
+                    xAxisID: 'linear',
                     borderColor: 'rgba(0, 128, 128, 0.2)',
                     backgroundColor: 'rgba(0, 128, 128, 0.2)',
                     pointBackgroundColor: 'rgba(0, 128, 128, 0.2)',
@@ -823,7 +823,7 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
                     cubicInterpolationMode: 'monotone'
                 }, {
                     label: ev_label,
-                    xAxisID: 'true',
+                    xAxisID: 'linear',
                     borderColor: 'rgba(128, 64, 0, 0.2)',
                     backgroundColor: 'rgba(128, 64, 0, 0.2)',
                     pointBackgroundColor: 'rgba(128, 64, 0, 0.2)',
@@ -848,15 +848,7 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
                         }
                     },
                     {
-                        id: 'cumulative',
-                        type: 'linear',
-                        display: false,
-                        ticks: {
-                            min: -0.5
-                        }
-                    },
-                    {
-                        id: 'true',
+                        id: 'linear',
                         type: 'linear',
                         display: false,
                         ticks: {
