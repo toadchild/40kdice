@@ -309,6 +309,30 @@ function roll() {
     // Apply probability filter
     var wounds = filter_prob_array(hits, wound_prob.pass_chance);
 
+    // Calculate odds of getting extra mortal wounds.
+    // Is a set of probability arrays keyed on the number of wounds.
+    var wound_of_6 = fetch_value('wound_of_6');
+    var wounds_mortal_wounds = [];
+    // Probability of a six given that we wound.
+    var wound_six_chance = wound_prob.six_chance / wound_prob.pass_chance;
+    for (var w = 0; w < wounds.length; w++) {
+        if (wound_of_6 == '+mortal') {
+            // Use binomial theorem to find out how likely it is to get n sixes on w dice.
+            wounds_mortal_wounds[w] = [];
+            for (var n = 0; n <= w; n++) {
+                var n_six_prob = prob(w, n, wound_six_chance);
+
+                if (wounds_mortal_wounds[w][n] == null) {
+                    wounds_mortal_wounds[w][n] = 0;
+                }
+                wounds_mortal_wounds[w][n] += n_six_prob;
+            }
+        } else {
+            wounds_mortal_wounds[w] = [];
+            wounds_mortal_wounds[w][0] = 1;
+        }
+    }
+
     graph(wounds, wound_title, 'wound');
 
     // Saves
@@ -319,7 +343,6 @@ function roll() {
     var save_mod = fetch_int_value('save_mod');
     var cover = is_checked('cover');
     var save_reroll = fetch_value('save_reroll');
-    var wound_of_6 = fetch_value('wound_of_6');
     // Always treat AP as negative
     ap_val = -Math.abs(ap_val);
     if (isNaN(save_mod)) {
@@ -415,7 +438,9 @@ function roll() {
         unsaved_title = save_title;
     }
 
-    var unsaved = filter_prob_array(wounds, unsaved_prob);
+    var unsaved;
+    var unsaved_mortal_wounds;
+    [unsaved, unsaved_mortal_wounds] = filter_prob_array_with_mortals(wounds, wounds_mortal_wounds, unsaved_prob);
 
     if (save_prob.fail_chance == 1) {
         unsaved_title = 'auto-fail save';
@@ -440,55 +465,36 @@ function roll() {
             damage_title += ' (quantum shield)';
         }
     }
-    var damage_prob = dice_sum_prob_array(damage_val);
 
+    var damage_prob = dice_sum_prob_array(damage_val);
     damage_prob = shake_damage(damage_prob, shake);
     if (wound_val) {
         damage_prob = clamp_prob_array(damage_prob, wound_val);
     }
+
+    // Change of a mortal wound going through.
+    var mortal_damage_chance = shake_damage([0, 1], shake)[1];
+
     var damage = [];
-    damage[0] = unsaved[0];
     // Apply damage based on how many hits there are.
-    for(var i = 1; i < unsaved.length; i++) {
+    for(var i = 0; i < unsaved.length; i++) {
         // Generate damage array for this many impacts.
-        hit_damage = roll_n_dice(i, damage_prob);
+        var hit_damage = [1];
+        if (i > 0) {
+            hit_damage = roll_n_dice(i, damage_prob);
+        }
+
         // Add to the damage output, scaled by our current probability.
         for (var j = 0; j < hit_damage.length; j++) {
-            if (damage[j] == null) {
-                damage[j] = 0;
-            }
-            damage[j] += unsaved[i] * hit_damage[j];
-        }
-    }
+            // Add extra damage points for mortal wounds.
+            for (var m = 0; m < unsaved_mortal_wounds[i].length; m++) {
+                for (var n = 0; n <= m; n++) {
+                    var n_mortal_prob = prob(m, n, mortal_damage_chance);
 
-    // Add extra damage points for mortal wounds.
-    if (wound_of_6 == '+mortal') {
-        // Probability of a six given that we wound.
-        var six_chance = wound_prob.six_chance / wound_prob.pass_chance;
-        // Should be less for shake effects.
-        var base_mortal_prob = [1 - six_chance, six_chance];
-        var mortal_damage_chance = shake_damage(base_mortal_prob, shake)[1];
-
-        // Take damage from each column and move them to the right.
-        // Have to start from the top, or we'll apply to damage we already shifted up.
-        for (var d = damage.length - 1; d >= 0; d--) {
-            if (damage[d] > 0) {
-                // We may decrement this multiple times.  Need to keep the original reference.
-                var original_d_prob = damage[d];
-
-                for (var w = 0; w < wounds.length; w++) {
-                    // Use binomial theorem to find out how likely it is to get n sixes on w dice.
-                    for (var n = 1; n <= w; n++) {
-                        var n_six_prob = prob(w, n, mortal_damage_chance);
-
-                        var target = d + n;
-                        var six_delta = original_d_prob * wounds[w] * n_six_prob;
-                        damage[d] -= six_delta;
-                        if (damage[target] == null) {
-                            damage[target] = 0;
-                        }
-                        damage[target] += six_delta;
+                    if (damage[j + n] == null) {
+                        damage[j + n] = 0;
                     }
+                    damage[j + n] += unsaved[i] * hit_damage[j] * unsaved_mortal_wounds[i][m] * n_mortal_prob;
                 }
             }
         }
@@ -562,15 +568,6 @@ function prob(trials, successes, probability) {
     return binom(trials, successes) * Math.pow(probability, successes) * Math.pow(1 - probability, trials - successes);
 }
 
-// Creates an array that has the probability of n successes stored in [n].
-function prob_array(trials, probability) {
-    var results = [];
-    for(var successes = 0; successes <= trials; successes++) {
-        results[successes] = prob(trials, successes, probability);
-    }
-    return results;
-}
-
 // Takes a probability array, returns new probability array reduced by the
 // specified probability of success.
 function filter_prob_array(input_probs, probability) {
@@ -582,17 +579,57 @@ function filter_prob_array(input_probs, probability) {
         if (input_probs[i] == 0) {
             continue;
         }
-        // all outcomes given this many trials
-        var trial_results = prob_array(i, probability);
+
         // merge into master list based on how likely this many trials were
-        for(var r = 0; r < trial_results.length; r++) {
+        for(var r = 0; r <= i; r++) {
+            var trial_result = prob(i, r, probability);
+
             if (results[r] == null) {
                 results[r] = 0;
             }
-            results[r] += input_probs[i] * trial_results[r];
+            results[r] += input_probs[i] * trial_result;
         }
     }
     return results
+}
+
+// Takes a probability array, returns new probability array reduced by the
+// specified probability of success.
+function filter_prob_array_with_mortals(input_probs, mortal_probs, probability) {
+    var results = [];
+    var mortal_results = [];
+    for(var i = 0; i < input_probs.length; i++) {
+        if (input_probs[i] == null) {
+            input_probs[i] = 0;
+        }
+
+        // merge into master list based on how likely this many trials were
+        for(var r = 0; r <= i; r++) {
+            var trial_result = prob(i, r, probability);
+
+            if (results[r] == null) {
+                results[r] = 0;
+                mortal_results[r] = [];
+            }
+            results[r] += input_probs[i] * trial_result;
+
+            for (var m = 0; m < mortal_probs[i].length; m++) {
+                if (mortal_results[r][m] == null) {
+                    mortal_results[r][m] = 0;
+                }
+                mortal_results[r][m] += mortal_probs[i][m] * input_probs[i] * trial_result;
+            }
+        }
+    }
+
+    // Renormalize the mortal wounds per category
+    for (var r = 0; r < mortal_results.length; r++) {
+        for (var m = 0; m < mortal_results[r].length; m++) {
+            mortal_results[r][m] /= results[r];
+        }
+    }
+
+    return [results, mortal_results];
 }
 
 // Returns a probability array for a specified number of dice in nDs notation.
