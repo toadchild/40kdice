@@ -790,9 +790,9 @@ function init() {
     charts['killed'] = init_chart('killed_chart', '{n} killed: ', '>= {n} killed: ', 'expected: {n} killed');
 
     // Populate fields from the parameter string.
-    var params = location.search.substring(1);
+    var params = location.hash.substring(1);
     if (params) {
-        var pairs = location.search.substring(1).split('&');
+        var pairs = params.split('&');
         if (pairs.length) {
             for (var i = 0; i < pairs.length; i++) {
                 var pair = pairs[i].split('=');
@@ -832,8 +832,7 @@ function generate_permalink() {
         }
     }
     var query = pairs.join('&');
-    var urlbase = location.href.split('?')[0];
-    document.getElementById('permalink').href = urlbase + '?' + query;
+    location.hash = query;
 }
 
 function init_chart(chart_name, bar_label, line_label, ev_label) {
