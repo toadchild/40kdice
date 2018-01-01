@@ -770,12 +770,12 @@ function graph(raw_data, title, chart_name) {
     text.innerHTML = 'Expected: ' + ev;
     var ev_points = [{x:ev, y:0}, {x:ev, y:100}];
 
-    chart.data.datasets[0].data = data;
-    chart.data.datasets[1].data = cumulative_data;
-    chart.data.datasets[2].data = ev_points;
+    chart.data.datasets[DATASET_PRIMARY].data = data;
+    chart.data.datasets[DATASET_CUMULATIVE].data = cumulative_data;
+    chart.data.datasets[DATASET_EXPECTED].data = ev_points;
     chart.data.labels = labels;
     chart.options.title.text = title;
-    chart.options.scales.xAxes[1].ticks.max = data.length;
+    chart.options.scales.xAxes[AXIS_LINEAR].ticks.max = data.length;
     chart.update();
 }
 
@@ -917,3 +917,11 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
         }
     });
 }
+
+// Constants correspond to the chart definitions above.
+const DATASET_PRIMARY = 0;
+const DATASET_CUMULATIVE = 1;
+const DATASET_EXPECTED = 2;
+
+const AXIS_LABELS = 0;
+const AXIS_LINEAR = 1;
