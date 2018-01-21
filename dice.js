@@ -184,7 +184,7 @@ function roll() {
     var attacks = dice_sum_prob_array(hit_dice);
     var attack_title = hit_dice + ' attacks';
 
-    graph(attacks, attack_title, 'attack');
+    graph(attacks.normal, attack_title, 'attack');
 
     // Hits
 
@@ -240,10 +240,10 @@ function roll() {
         // Take hits from each column and move them to the right.
         // Have to start from the top, or we'll apply to hits we already shifted up.
         // Also don't apply to misses.
-        for (var h = hits.length - 1; h > 0; h--) {
-            if (hits[h] > 0) {
+        for (var h = hits.normal.length - 1; h > 0; h--) {
+            if (hits.normal[h] > 0) {
                 // We may decrement this multiple times.  Need to keep the original reference.
-                var original_h_prob = hits[h];
+                var original_h_prob = hits.normal[h];
 
                 // Use binomial theorem to find out how likely it is to get n sixes on h dice.
                 for (var n = 1; n <= h; n++) {
@@ -255,11 +255,11 @@ function roll() {
                         if (b_prob) {
                             var target = h + b;
                             var six_delta = original_h_prob * n_six_hit_prob * b_prob;
-                            hits[h] -= six_delta;
-                            if (hits[target] == null) {
-                                hits[target] = 0;
+                            hits.normal[h] -= six_delta;
+                            if (hits.normal[target] == null) {
+                                hits.normal[target] = 0;
                             }
-                            hits[target] += six_delta;
+                            hits.normal[target] += six_delta;
                         }
                     }
                 }
@@ -267,7 +267,7 @@ function roll() {
         }
     }
 
-    graph(hits, hit_title, 'hit');
+    graph(hits.normal, hit_title, 'hit');
 
     // Wounds
 
@@ -312,28 +312,26 @@ function roll() {
     // Calculate odds of getting extra mortal wounds.
     // Is a set of probability arrays keyed on the number of wounds.
     var wound_of_6 = fetch_value('wound_of_6');
-    var wounds_mortal_wounds = [];
     // Probability of a six given that we wound.
     var wound_six_chance = wound_prob.six_chance / wound_prob.pass_chance;
-    for (var w = 0; w < wounds.length; w++) {
+    for (var w = 0; w < wounds.normal.length; w++) {
         if (wound_of_6 == '+mortal') {
             // Use binomial theorem to find out how likely it is to get n sixes on w dice.
-            wounds_mortal_wounds[w] = [];
             for (var n = 0; n <= w; n++) {
                 var n_six_prob = prob(w, n, wound_six_chance);
 
-                if (wounds_mortal_wounds[w][n] == null) {
-                    wounds_mortal_wounds[w][n] = 0;
+                if (wounds.mortal[w][n] == null) {
+                    wounds.mortal[w][n] = 0;
                 }
-                wounds_mortal_wounds[w][n] += n_six_prob;
+                wounds.mortal[w][n] += n_six_prob;
+                wounds.mortal[w][0] -= n_six_prob;
             }
         } else {
-            wounds_mortal_wounds[w] = [];
-            wounds_mortal_wounds[w][0] = 1;
+            wounds.mortal[w][0] = 1;
         }
     }
 
-    graph(wounds, wound_title, 'wound');
+    graph(wounds.normal, wound_title, 'wound');
 
     // Saves
 
@@ -421,7 +419,7 @@ function roll() {
         }
 
         // Set the save chance as a weighted combination of normal hits
-        // and AP-1 hits.
+        // and AP-X hits.
         // 1 chance and 6 chance are no longer accurate.
         save_prob.pass_chance = six_prob * ap_save_prob.pass_chance + (1 - six_prob) * save_prob.pass_chance;
         save_prob.fail_chance = six_prob * ap_save_prob.fail_chance + (1 - six_prob) * save_prob.fail_chance;
@@ -439,14 +437,13 @@ function roll() {
     }
 
     var unsaved;
-    var unsaved_mortal_wounds;
-    [unsaved, unsaved_mortal_wounds] = filter_prob_array_with_mortals(wounds, wounds_mortal_wounds, unsaved_prob);
+    unsaved = filter_prob_array(wounds, unsaved_prob);
 
     if (save_prob.fail_chance == 1) {
         unsaved_title = 'auto-fail save';
     }
 
-    graph(unsaved, unsaved_title, 'unsaved');
+    graph(unsaved.normal, unsaved_title, 'unsaved');
 
     // Damage
 
@@ -466,7 +463,7 @@ function roll() {
         }
     }
 
-    var damage_prob = dice_sum_prob_array(damage_val);
+    var damage_prob = dice_sum_prob_array(damage_val).normal;
     damage_prob = shake_damage(damage_prob, shake);
     if (wound_val) {
         damage_prob = clamp_prob_array(damage_prob, wound_val);
@@ -477,7 +474,7 @@ function roll() {
 
     var damage = [];
     // Apply damage based on how many hits there are.
-    for(var i = 0; i < unsaved.length; i++) {
+    for(var i = 0; i < unsaved.normal.length; i++) {
         // Generate damage array for this many impacts.
         var hit_damage = [1];
         if (i > 0) {
@@ -487,14 +484,14 @@ function roll() {
         // Add to the damage output, scaled by our current probability.
         for (var j = 0; j < hit_damage.length; j++) {
             // Add extra damage points for mortal wounds.
-            for (var m = 0; m < unsaved_mortal_wounds[i].length; m++) {
+            for (var m = 0; m < unsaved.mortal[i].length; m++) {
                 for (var n = 0; n <= m; n++) {
                     var n_mortal_prob = prob(m, n, mortal_damage_chance);
 
                     if (damage[j + n] == null) {
                         damage[j + n] = 0;
                     }
-                    damage[j + n] += unsaved[i] * hit_damage[j] * unsaved_mortal_wounds[i][m] * n_mortal_prob;
+                    damage[j + n] += unsaved.normal[i] * hit_damage[j] * unsaved.mortal[i][m] * n_mortal_prob;
                 }
             }
         }
@@ -571,77 +568,54 @@ function prob(trials, successes, probability) {
 // Takes a probability array, returns new probability array reduced by the
 // specified probability of success.
 function filter_prob_array(input_probs, probability) {
-    var results = [];
-    for(var i = 0; i < input_probs.length; i++) {
-        if (input_probs[i] == null) {
-            continue;
+    var results = {'normal': [], 'mortal': []};
+    for(var i = 0; i < input_probs.normal.length; i++) {
+        if (input_probs.normal[i] == null) {
+            input_probs.normal[i] = 0;
         }
-        if (input_probs[i] == 0) {
-            continue;
-        }
-
-        // merge into master list based on how likely this many trials were
-        for(var r = 0; r <= i; r++) {
-            var trial_result = prob(i, r, probability);
-
-            if (results[r] == null) {
-                results[r] = 0;
-            }
-            results[r] += input_probs[i] * trial_result;
-        }
-    }
-    return results
-}
-
-// Takes a probability array, returns new probability array reduced by the
-// specified probability of success.
-function filter_prob_array_with_mortals(input_probs, mortal_probs, probability) {
-    var results = [];
-    var mortal_results = [];
-    for(var i = 0; i < input_probs.length; i++) {
-        if (input_probs[i] == null) {
-            input_probs[i] = 0;
+        if (input_probs.mortal[i] == null) {
+            input_probs.mortal[i] = [1];
         }
 
         // merge into master list based on how likely this many trials were
         for(var r = 0; r <= i; r++) {
             var trial_result = prob(i, r, probability);
 
-            if (results[r] == null) {
-                results[r] = 0;
-                mortal_results[r] = [];
+            if (results.normal[r] == null) {
+                results.normal[r] = 0;
+                results.mortal[r] = [];
             }
-            results[r] += input_probs[i] * trial_result;
+            results.normal[r] += input_probs.normal[i] * trial_result;
 
-            for (var m = 0; m < mortal_probs[i].length; m++) {
-                if (mortal_results[r][m] == null) {
-                    mortal_results[r][m] = 0;
+            for (var m = 0; m < input_probs.mortal[i].length; m++) {
+                if (results.mortal[r][m] == null) {
+                    results.mortal[r][m] = 0;
                 }
-                mortal_results[r][m] += mortal_probs[i][m] * input_probs[i] * trial_result;
+                results.mortal[r][m] += input_probs.mortal[i][m] * input_probs.normal[i] * trial_result;
             }
         }
     }
 
     // Renormalize the mortal wounds per category
-    for (var r = 0; r < mortal_results.length; r++) {
-        for (var m = 0; m < mortal_results[r].length; m++) {
-            mortal_results[r][m] /= results[r];
+    for (var r = 0; r < results.mortal.length; r++) {
+        for (var m = 0; m < results.mortal[r].length; m++) {
+            results.mortal[r][m] /= results.normal[r];
         }
     }
 
-    return [results, mortal_results];
+    return results;
 }
 
 // Returns a probability array for a specified number of dice in nDs notation.
 // Will also return a constant probability array if no 'd' is present.
 function dice_sum_prob_array(value) {
-    var die_prob = [];
+    var die_prob = {'normal': [], 'mortal': []};
     var i = value.toLowerCase().indexOf('d');
     // No 'd', return constant probability.
     if (i == -1) {
-        die_prob.length = value;
-        die_prob.fill(0);
-        die_prob[die_prob.length] = 1;
+        die_prob.normal.length = value;
+        die_prob.normal.fill(0);
+        die_prob.normal[die_prob.normal.length] = 1;
         return die_prob;
     }
     var n = parseInt(value.substring(0, i), 10);
@@ -653,12 +627,14 @@ function dice_sum_prob_array(value) {
         sides = 1;
     }
 
-    die_prob[0] = 0;
+    var die_faces = [];
+    die_faces[0] = 0;
     for (var i = 1; i <= sides; i++) {
-        die_prob[i] = 1.0 / sides;
+        die_faces[i] = 1.0 / sides;
     }
 
-    return roll_n_dice(n, die_prob);
+    die_prob.normal = roll_n_dice(n, die_faces);
+    return die_prob;
 }
 
 // Roll n dice with the given probability distribution.
