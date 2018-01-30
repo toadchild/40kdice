@@ -753,10 +753,13 @@ function graph(raw_data, title, chart_name) {
     }
 
     // Drop zeroes off the end
-    while (data.length && (data[data.length - 1] == 0)) {
-        data.length--;
-        cumulative_data.length--;
-        labels.length--;
+    var max_length = Math.max(data.length, mortal.length);
+    while (max_length && (!data[max_length - 1] && !mortal[max_length - 1])) {
+        max_length--;
+        data.length = max_length;
+        mortal.length = max_length;
+        cumulative_data.length = max_length;
+        labels.length = max_length;
     }
     cumulative_data.push({x: cumulative_data.length, y: 0});
 
