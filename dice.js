@@ -184,7 +184,7 @@ function roll() {
     var attacks = dice_sum_prob_array(hit_dice);
     var attack_title = hit_dice + ' attacks';
 
-    graph(attacks.normal, attack_title, 'attack');
+    graph(attacks, attack_title, 'attack');
 
     // Hits
 
@@ -267,7 +267,7 @@ function roll() {
         }
     }
 
-    graph(hits.normal, hit_title, 'hit');
+    graph(hits, hit_title, 'hit');
 
     // Wounds
 
@@ -331,7 +331,7 @@ function roll() {
         }
     }
 
-    graph(wounds.normal, wound_title, 'wound');
+    graph(wounds, wound_title, 'wound');
 
     // Saves
 
@@ -443,7 +443,7 @@ function roll() {
         unsaved_title = 'auto-fail save';
     }
 
-    graph(unsaved.normal, unsaved_title, 'unsaved');
+    graph(unsaved, unsaved_title, 'unsaved');
 
     // Damage
 
@@ -472,7 +472,7 @@ function roll() {
     // Change of a mortal wound going through.
     var mortal_damage_chance = shake_damage([0, 1], shake)[1];
 
-    var damage = [];
+    var damage = {'normal': []};
     // Apply damage based on how many hits there are.
     for(var i = 0; i < unsaved.normal.length; i++) {
         // Generate damage array for this many impacts.
@@ -488,10 +488,10 @@ function roll() {
                 for (var n = 0; n <= m; n++) {
                     var n_mortal_prob = prob(m, n, mortal_damage_chance);
 
-                    if (damage[j + n] == null) {
-                        damage[j + n] = 0;
+                    if (damage.normal[j + n] == null) {
+                        damage.normal[j + n] = 0;
                     }
-                    damage[j + n] += unsaved.normal[i] * hit_damage[j] * unsaved.mortal[i][m] * n_mortal_prob;
+                    damage.normal[j + n] += unsaved.normal[i] * hit_damage[j] * unsaved.mortal[i][m] * n_mortal_prob;
                 }
             }
         }
@@ -501,21 +501,21 @@ function roll() {
 
     // Models Killed
 
-    var killed = [];
+    var killed = {'normal': []};
     var killed_title = 'models killed';
     if (wound_val) {
         // We're just dividing the damage done by the number of wounds.
         // Damage values are already clamped to the maximum number of
         // wounds a model has.
-        for (var d = 0; d < damage.length; d++) {
-            if (damage[d] == null) {
+        for (var d = 0; d < damage.normal.length; d++) {
+            if (damage.normal[d] == null) {
                 continue;
             }
             var kills = Math.floor(d / wound_val);
-            if (killed[kills] == null) {
-                killed[kills] = 0;
+            if (killed.normal[kills] == null) {
+                killed.normal[kills] = 0;
             }
-            killed[kills] += damage[d];
+            killed.normal[kills] += damage.normal[d];
         }
     }
 
@@ -710,15 +710,16 @@ function graph(raw_data, title, chart_name) {
     var cumulative_data = [];
     var cumulative = 100.0;
     var data = [];
+    var mortal = [];
     var chart = charts[chart_name];
 
     // Clean up data for graphing.
-    for(var l = 0; l < raw_data.length; l++) {
-        if (raw_data[l] == null) {
-            raw_data[l] = 0.0;
+    for(var l = 0; l < raw_data.normal.length; l++) {
+        if (raw_data.normal[l] == null) {
+            raw_data.normal[l] = 0.0;
         }
         // Generate rounded percentage point values.
-        var clean = Math.round(raw_data[l] * 1000) / 10.0;
+        var clean = Math.round(raw_data.normal[l] * 1000) / 10.0;
 
         data[l] = clean;
         labels[l] = l;
@@ -726,8 +727,28 @@ function graph(raw_data, title, chart_name) {
 
         // Decrement cumulative probability.
         // Note that this uses the true value, not the cleaned value.
-        if (raw_data[l] != null) {
-            cumulative -= raw_data[l] * 100;
+        if (raw_data.normal[l] != null) {
+            cumulative -= raw_data.normal[l] * 100;
+        }
+
+        // Mortal wounds are second dimenion and have to be summed across all rows
+        if (raw_data.mortal && raw_data.mortal[l]) {
+            for(var m = 1; m < raw_data.mortal[l].length; m++) {
+                if (mortal[m] == null) {
+                    mortal[m] = 0.0;
+                }
+                mortal[m] += raw_data.normal[l] * raw_data.mortal[l][m];
+            }
+        }
+    }
+
+    // Turn mortal count into percentage points
+    //chart.options.scales.xAxes[AXIS_LABELS].categoryPercentage = 1.6
+    if (mortal.length <= 1) {
+        mortal = [];
+    } else {
+        for (var m = 0; m < mortal.length; m++) {
+            mortal[m] = Math.round(mortal[m] * 1000) / 10.0;
         }
     }
 
@@ -741,12 +762,13 @@ function graph(raw_data, title, chart_name) {
 
     // Expected values
     var text = document.getElementById(chart_name + '_text');
-    var ev = expected_value(raw_data);
+    var ev = expected_value(raw_data.normal);
     ev = Math.round(ev * 100) / 100.0;
     text.innerHTML = 'Expected: ' + ev;
     var ev_points = [{x:ev, y:0}, {x:ev, y:100}];
 
     chart.data.datasets[DATASET_PRIMARY].data = data;
+    chart.data.datasets[DATASET_MORTAL].data = mortal;
     chart.data.datasets[DATASET_CUMULATIVE].data = cumulative_data;
     chart.data.datasets[DATASET_EXPECTED].data = ev_points;
     chart.data.labels = labels;
@@ -813,6 +835,8 @@ function generate_permalink() {
 
 function init_chart(chart_name, bar_label, line_label, ev_label) {
     var ctx = document.getElementById(chart_name);
+    var mortal_label = '{n} mortal: ';
+
     return new Chart(ctx, {
         type: 'bar',
         data: {
@@ -821,24 +845,32 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
                 {
                     label: bar_label,
                     xAxisID: 'labels',
-                    borderColor: 'rgba(128, 0, 128, 0.2)',
-                    backgroundColor: 'rgba(128, 0, 128, 0.2)',
-                    data: []
+                    borderColor: 'rgba(128, 0, 128, 0.4)',
+                    backgroundColor: 'rgba(128, 0, 128, 0.4)',
+                    data: [],
+                    stack: 'a'
+                }, {
+                    label: mortal_label,
+                    xAxisID: 'labels',
+                    borderColor: 'rgba(192, 0, 0, 0.4)',
+                    backgroundColor: 'rgba(192, 0, 0, 0.4)',
+                    data: [],
+                    stack: 'a'
                 }, {
                     label: line_label,
                     xAxisID: 'linear',
-                    borderColor: 'rgba(0, 128, 128, 0.2)',
+                    borderColor: 'rgba(0, 128, 128, 0.4)',
                     backgroundColor: 'rgba(0, 128, 128, 0.2)',
-                    pointBackgroundColor: 'rgba(0, 128, 128, 0.2)',
+                    pointBackgroundColor: 'rgba(0, 128, 128, 0.4)',
                     data: [],
                     type: 'line',
                     cubicInterpolationMode: 'monotone'
                 }, {
                     label: ev_label,
                     xAxisID: 'linear',
-                    borderColor: 'rgba(128, 64, 0, 0.2)',
-                    backgroundColor: 'rgba(128, 64, 0, 0.2)',
-                    pointBackgroundColor: 'rgba(128, 64, 0, 0.2)',
+                    borderColor: 'rgba(128, 64, 0, 0.4)',
+                    backgroundColor: 'rgba(128, 64, 0, 0.4)',
+                    pointBackgroundColor: 'rgba(128, 64, 0, 0.4)',
                     data: [],
                     type: 'line'
                 }
@@ -848,7 +880,7 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
             scales: {
                 yAxes: [{
                     ticks: {
-                        beginAtZero:true,
+                        beginAtZero: true,
                         min: 0
                     }
                 }],
@@ -857,7 +889,8 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
                         id: 'labels',
                         ticks: {
                             maxRotation: 0
-                        }
+                        },
+                        stacked: true
                     },
                     {
                         id: 'linear',
@@ -881,7 +914,7 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
                         return '';
                     },
                     label: function(item, chart) {
-                        if (item.datasetIndex == 2) {
+                        if (item.datasetIndex == DATASET_EXPECTED) {
                             // Expected value
                             return chart.datasets[item.datasetIndex].label.replace('{n}', item.xLabel);
                         } else {
@@ -896,8 +929,9 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
 
 // Constants correspond to the chart definitions above.
 const DATASET_PRIMARY = 0;
-const DATASET_CUMULATIVE = 1;
-const DATASET_EXPECTED = 2;
+const DATASET_MORTAL = 1;
+const DATASET_CUMULATIVE = 2;
+const DATASET_EXPECTED = 3;
 
 const AXIS_LABELS = 0;
 const AXIS_LINEAR = 1;
