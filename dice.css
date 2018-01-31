@@ -1,0 +1,13 @@
+.output {
+    float: left;
+}
+
+.chart {
+    width: 200px;
+    height: 200px;
+}
+
+.endnote {
+    clear: both;
+    font-size: 75%;
+}
