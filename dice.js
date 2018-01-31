@@ -288,7 +288,8 @@ function roll() {
         wound_stat = 4;
     }
 
-    var wound_prob = success_chance(wound_stat);
+    var wound_mod = fetch_int_value('wound_mod');
+    var wound_prob = success_chance(wound_stat, wound_mod);
     var wound_title;
     if (wound_prob.pass_chance == 1) {
         wound_title = 'auto-wound';
@@ -816,7 +817,7 @@ function init() {
     }
 }
 
-var fields = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'save_mod', 'invulnerable', 'wounds'];
+var fields = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'wound_mod', 'save_mod', 'invulnerable', 'wounds'];
 var checkboxes = ['cover'];
 var selects = ['hit_of_6', 'hit_reroll', 'wound_of_6', 'wound_reroll', 'save_reroll', 'shake'];
 function generate_permalink() {
