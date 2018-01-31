@@ -598,8 +598,12 @@ function filter_prob_array(input_probs, probability) {
 
     // Renormalize the mortal wounds per category
     for (var r = 0; r < results.mortal.length; r++) {
-        for (var m = 0; m < results.mortal[r].length; m++) {
-            results.mortal[r][m] /= results.normal[r];
+        if (results.normal[r] != 0) {
+            for (var m = 0; m < results.mortal[r].length; m++) {
+                results.mortal[r][m] /= results.normal[r];
+            }
+        } else {
+            results.mortal[r] = [1];
         }
     }
 
@@ -733,7 +737,7 @@ function graph(raw_data, title, chart_name) {
 
         // Mortal wounds are second dimenion and have to be summed across all rows
         if (raw_data.mortal && raw_data.mortal[l]) {
-            for(var m = 1; m < raw_data.mortal[l].length; m++) {
+            for(var m = 0; m < raw_data.mortal[l].length; m++) {
                 if (mortal[m] == null) {
                     mortal[m] = 0.0;
                 }
