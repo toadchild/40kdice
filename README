@@ -1,2 +1,11 @@
+Dice Statstics Analysis Tool for 8th Edition Warhammer 40,000
+
+To use this tool, please visit http://40k.ghostlords.com/dice/
+
+This tool was created by Jonathan Polley to help enhance your enjoyment of Warhammer 40000. Please direct any feedback to 40k@ghostlords.com.
+Warhammer 40000 is copyright Games Workshop Limited.
+
+To install, simply copy all html and js files into a directory and serve on the web, along with any dependencies.
+
 This requires chart.js to function.
 http://www.chartjs.org/
