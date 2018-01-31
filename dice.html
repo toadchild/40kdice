@@ -12,9 +12,15 @@
 
     <div>
         <h2>Attack Stats</h2>
-        <p><label>Attacks: <input type="text" id="attacks"></label></p>
-        <p><label>BS/WS: <input type="text" id="bs"></label></p>
-        <p><label>Hit Modifier: <input type="text" id="hit_mod"></label></p>
+        <p><label>Attacks: <input type="text" id="attacks"></label>
+        <span class="description">Ex: 4, 2d6</span>
+        </p>
+        <p><label>BS/WS: <input type="text" id="bs"></label>
+        <span class="description">Ex: 4, leave blank to auto-hit</span>
+        </p>
+        <p><label>Hit Modifier: <input type="text" id="hit_mod"></label>
+        <span class="description">Ex: 1, -2</span>
+        </p>
         <p>
         Hit rolls of 6:
         <select id="hit_of_6">
@@ -30,10 +36,16 @@
             <option value="fail">Failed hit rolls</option>
         </select>
         </p>
-        <p><label>S: <input type="text" id="s"></label></p>
-        <p><label>AP: <input type="text" id="ap"></label></p>
+        <p><label>S: <input type="text" id="s"></label>
+        <span class="description">Ex: 4, leave blank to auto-wound</span>
+        </p>
+        <p><label>AP: <input type="text" id="ap"></label>
+        <span class="description">Ex: -1, 2 (sign is ignored)</span>
+        </p>
         <p><label>D: <input type="text" id="d" value="1"></label></p>
-        <p><label>Wound Modifier: <input type="text" id="wound_mod"></label></p>
+        <p><label>Wound Modifier: <input type="text" id="wound_mod"></label>
+        <span class="description">Ex: 1, -2</span>
+        </p>
         <p>
         Wound rolls of 6:
         <select id="wound_of_6">
@@ -54,13 +66,21 @@
     </div>
     <div>
         <h2>Defense Stats</h2>
-        <p><label>T: <input type="text" id="t"></label></p>
-        <p><label>Save: <input type="text" id="save"></label></p>
-        <p><label>Save Modifier: <input type="text" id="save_mod"></label></p>
+        <p><label>T: <input type="text" id="t"></label>
+        <span class="description">Ex: 4, leave blank to auto-wound</span>
+        </p>
+        <p><label>Save: <input type="text" id="save"></label>
+        <span class="description">Ex: 4</span>
+        </p>
+        <p><label>Save Modifier: <input type="text" id="save_mod"></label>
+        <span class="description">Ex: 1, -2</span>
+        </p>
         <p>
         <label><input type="checkbox" id="cover" value="1">Cover</label>
         </p>
-        <p><label>Invulnerable Save: <input type="text" id="invulnerable"></label></p>
+        <p><label>Invulnerable Save: <input type="text" id="invulnerable"></label>
+        <span class="description">Ex: 4</span>
+        </p>
         <p>
         Reroll: <select id="save_reroll">
             <option value="">No save rolls</option>
@@ -70,7 +90,9 @@
             <option value="inv_fail">Failed invulnerable save rolls</option>
         </select>
         </p>
-        <p><label>Wounds per model: <input type="text" id="wounds"></label></p>
+        <p><label>Wounds per model: <input type="text" id="wounds"></label>
+        <span class="description">Ex: 1, 13, leave blank if you don't care</span>
+        </p>
         Shake off damage: <select id="shake">
             <option value="">Never</option>
             <option value="6">On a roll of 6</option>

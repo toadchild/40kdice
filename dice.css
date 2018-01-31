@@ -11,3 +11,8 @@
     clear: both;
     font-size: 75%;
 }
+
+.description {
+    color: grey;
+    font-style: italic;
+}
