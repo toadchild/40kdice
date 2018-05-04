@@ -307,6 +307,16 @@ function roll() {
         wound_prob = reroll_1(wound_prob);
     }
 
+    // Auto-wound on roll of 6+
+    // Only apply normal wound probability to lesser hits
+    if (hit_of_6 == 'autowound') {
+        var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
+        wound_prob.pass_chance = 1.0 * hit_six_chance + wound_prob.pass_chance * (1.0 - hit_six_chance);
+        wound_prob.fail_chance = wound_prob.fail_chance * (1.0 - hit_six_chance);
+        wound_prob.natural_fail_chance = wound_prob.natural_fail_chance * (1.0 - hit_six_chance);
+        wound_prob.six_chance = wound_prob.six_chance * (1.0 - hit_six_chance);
+    }
+
     // Apply probability filter
     var wounds = filter_prob_array(hits, wound_prob.pass_chance);
 
