@@ -118,15 +118,12 @@ function shake_damage(damage_prob, shake) {
     results.fill(0.0);
     results[0] = damage_prob[0];
 
-    if (shake == '6' || shake == '56' || shake == '2x6') {
+    if (shake == '6' || shake == '56') {
         // Most abilities shake off individual points of damage
         var shake_prob;
         if (shake == '6') {
             // Single roll of 6
             shake_prob = 1.0 / 6.0;
-        } else if (shake == '2x6') {
-            // Roll of at least one 6 on 2 dice
-            shake_prob = 11.0 / 36.0;
         } else if (shake == '56') {
             // Single roll of 5 or 6
             shake_prob = 1.0 / 3.0;
@@ -465,8 +462,6 @@ function roll() {
     if (shake) {
         if (shake == '6') {
             damage_title += ' (shake on 6)';
-        } else if (shake == '2x6') {
-            damage_title += ' (2x shake on 6)';
         } else if (shake == '56') {
             damage_title += ' (shake on 5,6)';
         } else if (shake == 'quantum') {
