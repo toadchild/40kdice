@@ -447,7 +447,7 @@ function roll() {
     var unsaved;
     unsaved = filter_prob_array(wounds, unsaved_prob);
 
-    if (save_prob.fail_chance == 1) {
+    if (unsaved_prob == 1) {
         unsaved_title = 'auto-fail save';
     }
 
