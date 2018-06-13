@@ -453,81 +453,81 @@ function roll() {
 
     graph(unsaved, unsaved_title, 'unsaved');
 
-    // Damage
+    // Damage and Wounds
+
+    var damage = apply_damage(unsaved);
+    graph(damage.damage, damage.damage_title, 'damage');
+    graph(damage.killed, damage.killed_title, 'killed');
+
+    generate_permalink();
+}
+
+function apply_damage(unsaved, damage, killed) {
+    var ret = {};
 
     var damage_val = fetch_value('d');
-    var damage_title = damage_val + ' damage';
+    ret.damage_title = damage_val + ' damage';
     var wound_val = fetch_int_value('wounds');
     var shake = fetch_value('shake');
     if (shake) {
         if (shake == '6') {
-            damage_title += ' (shake on 6)';
+            ret.damage_title += ' (shake on 6)';
         } else if (shake == '56') {
-            damage_title += ' (shake on 5,6)';
+            ret.damage_title += ' (shake on 5,6)';
         } else if (shake == 'quantum') {
-            damage_title += ' (quantum shield)';
+            ret.damage_title += ' (quantum shield)';
         }
     }
 
     var damage_prob = dice_sum_prob_array(damage_val).normal;
     damage_prob = shake_damage(damage_prob, shake);
-    if (wound_val) {
-        damage_prob = clamp_prob_array(damage_prob, wound_val);
-    }
 
     // Change of a mortal wound going through.
     var mortal_damage_chance = shake_damage([0, 1], shake)[1];
 
-    var damage = {'normal': []};
+    ret.damage = {'normal': []};
+    ret.killed = {'normal': []};
+    ret.killed_title = 'models killed';
+
     // Apply damage based on how many hits there are.
-    for(var i = 0; i < unsaved.normal.length; i++) {
-        // Generate damage array for this many impacts.
-        var hit_damage = [1];
-        if (i > 0) {
-            hit_damage = roll_n_dice(i, damage_prob);
-        }
-
-        // Add to the damage output, scaled by our current probability.
-        for (var j = 0; j < hit_damage.length; j++) {
-            // Add extra damage points for mortal wounds.
-            for (var m = 0; m < unsaved.mortal[i].length; m++) {
-                for (var n = 0; n <= m; n++) {
-                    var n_mortal_prob = prob(m, n, mortal_damage_chance);
-
-                    if (damage.normal[j + n] == null) {
-                        damage.normal[j + n] = 0;
-                    }
-                    damage.normal[j + n] += unsaved.normal[i] * hit_damage[j] * unsaved.mortal[i][m] * n_mortal_prob;
-                }
-            }
+    for(var n = 0; n < unsaved.normal.length; n++) {
+        for(var m = 0; m < unsaved.mortal[n].length; m++) {
+            recursive_damage(n, m, unsaved.normal[n] * unsaved.mortal[n][m], mortal_damage_chance, damage_prob, 0, 0, wound_val, ret.damage, 0, ret.killed);
         }
     }
 
-    graph(damage, damage_title, 'damage');
+    return ret;
+}
 
-    // Models Killed
-
-    var killed = {'normal': []};
-    var killed_title = 'models killed';
-    if (wound_val) {
-        // We're just dividing the damage done by the number of wounds.
-        // Damage values are already clamped to the maximum number of
-        // wounds a model has.
-        for (var d = 0; d < damage.normal.length; d++) {
-            if (damage.normal[d] == null) {
-                continue;
-            }
-            var kills = Math.floor(d / wound_val);
-            if (killed.normal[kills] == null) {
-                killed.normal[kills] = 0;
-            }
-            killed.normal[kills] += damage.normal[d];
-        }
+function recursive_damage(n, m, cumulative, mortal_chance, damage_prob, unit_damage, total_damage, wounds, damage_out, killed, killed_out) {
+    // Increment kill count if wounds are exceeded.
+    if (wounds && unit_damage >= wounds) {
+        unit_damage = 0;
+        killed += 1;
     }
 
-    graph(killed, killed_title, 'killed');
+    if (m) {
+        // Allocate mortal wounds first.
+        recursive_damage(n, m - 1, cumulative * mortal_chance, mortal_chance, damage_prob, unit_damage + 1, total_damage + 1, wounds, damage_out, killed, killed_out);
+    } else if (n > 0) {
+        // Allocate normal wounds.
+        for(var d = 0; d < damage_prob.length; d++) {
+            recursive_damage(n - 1, m, cumulative * damage_prob[d], mortal_chance, damage_prob, unit_damage + d, total_damage + d, wounds, damage_out, killed, killed_out);
+        }
+    } else {
+        // Add running total to accumulators.
+        if (damage_out.normal[total_damage] == null) {
+            damage_out.normal[total_damage] = 0;
+        }
+        damage_out.normal[total_damage] += cumulative;
 
-    generate_permalink();
+        if (wounds) {
+            if (killed_out.normal[killed] == null) {
+                killed_out.normal[killed] = 0;
+            }
+            killed_out.normal[killed] += cumulative;
+        }
+    }
 }
 
 // Binomial expansion.
@@ -652,6 +652,11 @@ function dice_sum_prob_array(value) {
 // Modified to support dice with non-uniform probabilities.
 // Note that this includes dice that can roll a result of 0!
 function roll_n_dice(n, die_prob) {
+    // If we're rolling 0 dice, 100% chance of getting 0
+    if (n <= 0) {
+        return [1];
+    }
+
     // Make a pair of buffers.  Preload the values for 1 die in each.
     // We only enter the loop for 2+ dice.
     var counts = [];
@@ -684,24 +689,6 @@ function roll_n_dice(n, die_prob) {
     }
 
     return counts;
-}
-
-// Returns a probability array clamped to maximum value 'max'.
-// All probabilities > max are added into max.
-function clamp_prob_array(prob, max) {
-    results = [];
-    for (var i = 0; i < prob.length; i++) {
-        if (i <= max) {
-            results[i] = prob[i];
-        } else {
-            if (results[max] == null) {
-                results[max] = 0;
-            }
-            results[max] += prob[i];
-        }
-    }
-
-    return results;
 }
 
 function expected_value(data) {
