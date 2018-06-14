@@ -453,29 +453,19 @@ function roll() {
 
     graph(unsaved, unsaved_title, 'unsaved');
 
-    // Damage and Wounds
-
-    var damage = apply_damage(unsaved);
-    graph(damage.damage, damage.damage_title, 'damage');
-    graph(damage.killed, damage.killed_title, 'killed');
-
-    generate_permalink();
-}
-
-function apply_damage(unsaved, damage, killed) {
-    var ret = {};
+    // Damage
 
     var damage_val = fetch_value('d');
-    ret.damage_title = damage_val + ' damage';
+    var damage_title = damage_val + ' damage';
     var wound_val = fetch_int_value('wounds');
     var shake = fetch_value('shake');
     if (shake) {
         if (shake == '6') {
-            ret.damage_title += ' (shake on 6)';
+            damage_title += ' (shake on 6)';
         } else if (shake == '56') {
-            ret.damage_title += ' (shake on 5,6)';
+            damage_title += ' (shake on 5,6)';
         } else if (shake == 'quantum') {
-            ret.damage_title += ' (quantum shield)';
+            damage_title += ' (quantum shield)';
         }
     }
 
@@ -485,49 +475,67 @@ function apply_damage(unsaved, damage, killed) {
     // Change of a mortal wound going through.
     var mortal_damage_chance = shake_damage([0, 1], shake)[1];
 
-    ret.damage = {'normal': []};
-    ret.killed = {'normal': []};
-    ret.killed_title = 'models killed';
-
+    var damage = {'normal': []};
     // Apply damage based on how many hits there are.
     for(var n = 0; n < unsaved.normal.length; n++) {
-        for(var m = 0; m < unsaved.mortal[n].length; m++) {
-            recursive_damage(n, m, unsaved.normal[n] * unsaved.mortal[n][m], mortal_damage_chance, damage_prob, 0, 0, wound_val, ret.damage, 0, ret.killed);
-        }
-    }
+        // Generate damage array for this many impacts.
+        hit_damage = roll_n_dice(n, damage_prob);
 
-    return ret;
-}
+        // Add to the damage output, scaled by our current probability.
+        for (var d = 0; d < hit_damage.length; d++) {
+            // Add extra damage points for mortal wounds.
+            for (var m = 0; m < unsaved.mortal[n].length; m++) {
+                for (var mortals = 0; mortals <= m; mortals++) {
+                    var n_mortal_prob = prob(m, mortals, mortal_damage_chance);
 
-function recursive_damage(n, m, cumulative, mortal_chance, damage_prob, unit_damage, total_damage, wounds, damage_out, killed, killed_out) {
-    // Increment kill count if wounds are exceeded.
-    if (wounds && unit_damage >= wounds) {
-        unit_damage = 0;
-        killed += 1;
-    }
+                    // Total damage including mortal wounds
+                    var dam = d + mortals;
 
-    if (m) {
-        // Allocate mortal wounds first.
-        recursive_damage(n, m - 1, cumulative * mortal_chance, mortal_chance, damage_prob, unit_damage + 1, total_damage + 1, wounds, damage_out, killed, killed_out);
-    } else if (n > 0) {
-        // Allocate normal wounds.
-        for(var d = 0; d < damage_prob.length; d++) {
-            recursive_damage(n - 1, m, cumulative * damage_prob[d], mortal_chance, damage_prob, unit_damage + d, total_damage + d, wounds, damage_out, killed, killed_out);
-        }
-    } else {
-        // Add running total to accumulators.
-        if (damage_out.normal[total_damage] == null) {
-            damage_out.normal[total_damage] = 0;
-        }
-        damage_out.normal[total_damage] += cumulative;
-
-        if (wounds) {
-            if (killed_out.normal[killed] == null) {
-                killed_out.normal[killed] = 0;
+                    if (damage.normal[dam] == null) {
+                        damage.normal[dam] = 0;
+                    }
+                    damage.normal[dam] += unsaved.normal[n] * hit_damage[d] * unsaved.mortal[n][m] * n_mortal_prob;
+                }
             }
-            killed_out.normal[killed] += cumulative;
         }
     }
+
+    graph(damage, damage_title, 'damage');
+
+    // Models Killed
+
+    var killed = {'normal': []};
+    var killed_title = 'models killed';
+    if (wound_val) {
+        for(var n = 0; n < unsaved.normal.length; n++) {
+            // Generate killed array for this many impacts.
+            hit_killed = roll_n_dice_against_threshold(n, damage_prob, wound_val);
+
+            // Add to the killed output, scaled by our current probability.
+            for (var k = 0; k < hit_killed.length; k++) {
+                for (var w = 0; w < hit_killed[k].length; w++) {
+                    // Add extra kills for mortal wounds.
+                    for (var m = 0; m < unsaved.mortal[n].length; m++) {
+                        for (var mortals = 0; mortals <= m; mortals++) {
+                            var n_mortal_prob = prob(m, mortals, mortal_damage_chance);
+
+                            // Total kills; previously killed models + mortal wounds.
+                            var kills = k + Math.floor((w + mortals) / wound_val);
+
+                            if (killed.normal[kills] == null) {
+                                killed.normal[kills] = 0;
+                            }
+                            killed.normal[kills] += unsaved.normal[n] * hit_killed[k][w] * unsaved.mortal[n][m] * n_mortal_prob;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    graph(killed, killed_title, 'killed');
+
+    generate_permalink();
 }
 
 // Binomial expansion.
@@ -659,36 +667,100 @@ function roll_n_dice(n, die_prob) {
 
     // Make a pair of buffers.  Preload the values for 1 die in each.
     // We only enter the loop for 2+ dice.
-    var counts = [];
-    var oldcounts = [];
+    var probs = [];
+    var oldprobs = [];
     var sides = die_prob.length - 1;
-    counts.length = n * sides + 1;
-    oldcounts.length = n * sides + 1;
-    counts.fill(0);
-    oldcounts.fill(0);
+    probs.length = n * sides + 1;
+    oldprobs.length = n * sides + 1;
+    probs.fill(0);
+    oldprobs.fill(0);
     for (var i = 0; i <= sides; i++) {
-        counts[i] = die_prob[i];
-        oldcounts[i] = die_prob[i];
+        probs[i] = die_prob[i];
+        oldprobs[i] = die_prob[i];
     }
 
     for (var d = 2; d <= n; d++) {
         // Clear working buffer
-        counts = [];
-        counts.length = n * sides + 1;
-        counts.fill(0);
+        probs = [];
+        probs.length = n * sides + 1;
+        probs.fill(0);
 
         // For each face of the new die...
         for (var i = 0; i <= sides; i++) {
             // Sum with old outcomes...
             for (var j = 0; j <= (d - 1) * sides; j++) {
                 // Combine probabilities of [i] and [j] to get [i+j]
-                counts[i + j] += die_prob[i] * oldcounts[j];
+                probs[i + j] += die_prob[i] * oldprobs[j];
             }
         }
-        oldcounts = counts;
+        oldprobs = probs;
     }
 
-    return counts;
+    return probs;
+}
+
+// Variant of roll_n_dice that checks the total against a threshold.
+// Used to efficiently calculate how many models are killed by n attacks.
+// Return value is a 2D array:
+//   1st index is number of successes (value >= threshold)
+//   2nd index is the excess value accumulated
+// Total probability for n successes is the sum of return[n]
+function roll_n_dice_against_threshold(n, die_prob, threshold) {
+    // If we're rolling 0 dice, 100% chance of getting 0
+    if (n <= 0) {
+        return [[1]];
+    }
+
+    // Make a pair of buffers.  Preload the values for 1 die in each.
+    // We only enter the loop for 2+ dice.
+    var sides = die_prob.length - 1;
+    var probs = array_2d(2, threshold);
+    var oldprobs = array_2d(2, threshold);
+    for (var i = 0; i <= sides; i++) {
+        if (i >= threshold) {
+            probs[1][0] += die_prob[i];
+            oldprobs[1][0] += die_prob[i];
+        } else {
+            probs[0][i] = die_prob[i];
+            oldprobs[0][i] = die_prob[i];
+        }
+    }
+
+    for (var d = 2; d <= n; d++) {
+        // Clear working buffer
+        probs = array_2d(d + 1, threshold);
+
+        // For each face of the new die...
+        for (var i = 0; i <= sides; i++) {
+            // Sum with old outcomes...
+            for (var s = 0; s < oldprobs.length; s++) {
+                for (var v = 0; v < oldprobs[s].length; v++) {
+                    // Calculate new number of partial/complete successes.
+                    var value = v + i;
+                    var successes = s;
+                    if (value >= threshold) {
+                        value = 0;
+                        successes++;
+                    }
+                    probs[successes][value] += die_prob[i] * oldprobs[s][v];
+                }
+            }
+        }
+        oldprobs = probs;
+    }
+
+    return probs;
+}
+
+// Returns a 2d array[i][j] where every index is = 0
+function array_2d(i, j) {
+    var ret = [];
+    for (var a = 0; a < i; a++) {
+        ret[a] = [];
+        ret[a].length = j;
+        ret[a].fill(0);
+    }
+    return ret;
 }
 
 function expected_value(data) {
