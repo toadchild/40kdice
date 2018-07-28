@@ -792,7 +792,9 @@ function graph(raw_data, title, chart_name) {
 
         data[l] = clean;
         labels[l] = l;
-        cumulative_data[l] = {x: l, y: Math.round(cumulative * 10) / 10.0};
+        if (l == 0 || clean) {
+            cumulative_data.push({x: l, y: Math.round(cumulative * 10) / 10.0});
+        }
 
         // Decrement cumulative probability.
         // Note that this uses the true value, not the cleaned value.
@@ -827,10 +829,12 @@ function graph(raw_data, title, chart_name) {
         max_length--;
         data.length = max_length;
         mortal.length = max_length;
-        cumulative_data.length = max_length;
         labels.length = max_length;
+        if (cumulative_data[cumulative_data.length - 1].x >= max_length) {
+            cumulative_data.length--;
+        }
     }
-    cumulative_data.push({x: cumulative_data.length, y: 0});
+    cumulative_data.push({x: max_length, y: 0});
 
     // Expected values
     var text = document.getElementById(chart_name + '_text');
