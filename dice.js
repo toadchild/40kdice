@@ -175,9 +175,31 @@ function shake_damage(damage_prob, shake) {
 }
 
 function roll() {
+    // Fetch all values up front
+    var hit_dice = fetch_value('attacks');
+    var hit_stat = fetch_int_value('bs');
+    var hit_mod = fetch_int_value('hit_mod');
+    var hit_reroll = fetch_value('hit_reroll');
+    var hit_of_6 = fetch_value('hit_of_6');
+    var s = fetch_int_value('s');
+    var t = fetch_int_value('t');
+    var wound_mod = fetch_int_value('wound_mod');
+    var wound_reroll = fetch_value('wound_reroll');
+    var wound_of_6 = fetch_value('wound_of_6');
+    var save_stat = fetch_int_value('save');
+    var invuln_stat = fetch_int_value('invulnerable');
+    var ap_val = fetch_int_value('ap');
+    var save_mod = fetch_int_value('save_mod');
+    var cover = is_checked('cover');
+    var save_reroll = fetch_value('save_reroll');
+    var damage_val = fetch_value('d');
+    var wound_val = fetch_int_value('wounds');
+    var shake = fetch_value('shake');
+
+    var damage_prob = dice_sum_prob_array(damage_val).normal;
+
     // Number of attacks
 
-    var hit_dice = fetch_value('attacks');
     var attacks = dice_sum_prob_array(hit_dice);
     var attack_title = hit_dice + ' attacks';
 
@@ -185,8 +207,6 @@ function roll() {
 
     // Hits
 
-    var hit_stat = fetch_int_value('bs');
-    var hit_mod = fetch_int_value('hit_mod');
     var hit_prob = success_chance(hit_stat, hit_mod);
     var hit_title;
     if (hit_prob.pass_chance == 1) {
@@ -204,7 +224,6 @@ function roll() {
     }
 
     // Rerolls
-    var hit_reroll = fetch_value('hit_reroll');
     if (hit_reroll == 'fail') {
         hit_title += ', reroll misses';
         hit_prob = reroll(hit_prob);
@@ -217,7 +236,6 @@ function roll() {
     var hits = filter_prob_array(attacks, hit_prob.pass_chance);
 
     // Hit of six generates extra hits
-    var hit_of_6 = fetch_value('hit_of_6');
     if (hit_of_6) {
         // Probability of a six given that we hit.
         var six_prob = hit_prob.six_chance / hit_prob.pass_chance;
@@ -268,8 +286,6 @@ function roll() {
 
     // Wounds
 
-    var s = fetch_int_value('s');
-    var t = fetch_int_value('t');
     var wound_stat;
     if (!s || !t) {
         wound_stat = Number.NaN;
@@ -285,7 +301,6 @@ function roll() {
         wound_stat = 4;
     }
 
-    var wound_mod = fetch_int_value('wound_mod');
     var wound_prob = success_chance(wound_stat, wound_mod);
     var wound_title;
     if (wound_prob.pass_chance == 1) {
@@ -295,7 +310,6 @@ function roll() {
     }
 
     // Rerolls
-    var wound_reroll = fetch_value('wound_reroll');
     if (wound_reroll == 'fail') {
         wound_title += ', reroll misses';
         wound_prob = reroll(wound_prob);
@@ -317,13 +331,13 @@ function roll() {
     // Apply probability filter
     var wounds = filter_prob_array(hits, wound_prob.pass_chance);
 
-    // Calculate odds of getting extra mortal wounds.
+    // Calculate odds of getting mortal wounds.
     // Is a set of probability arrays keyed on the number of wounds.
-    var wound_of_6 = fetch_value('wound_of_6');
     // Probability of a six given that we wound.
     var wound_six_chance = wound_prob.six_chance / wound_prob.pass_chance;
-    for (var w = 0; w < wounds.normal.length; w++) {
-        if (wound_of_6 == '+mortal') {
+    if (wound_of_6 == '+mortal') {
+        for (var w = 0; w < wounds.normal.length; w++) {
+            // Wound of 6+ deals 1 mortal wound in addition to normal wounds
             // Use binomial theorem to find out how likely it is to get n sixes on w dice.
             for (var n = 0; n <= w; n++) {
                 var n_six_prob = prob(w, n, wound_six_chance);
@@ -334,7 +348,53 @@ function roll() {
                 wounds.mortal[w][n] += n_six_prob;
                 wounds.mortal[w][0] -= n_six_prob;
             }
-        } else {
+        }
+    } else if (wound_of_6 == 'mortal') {
+        var orig_wounds_normal = []
+        var raw_mortal_wounds = [];
+        for (var w = 0; w < wounds.normal.length; w++) {
+            orig_wounds_normal[w] = wounds.normal[w];
+            // Wound of 6+ deals all damage as mortal wounds
+            // Use binomial theorem to find out how likely it is to get n sixes on w dice.
+            for (var n = 1; n <= w; n++) {
+                var n_six_prob = prob(w, n, wound_six_chance);
+
+                // Remove regular wounds
+                var wound_delta = n_six_prob * orig_wounds_normal[w];
+                wounds.normal[w] -= wound_delta;
+                wounds.normal[w - n] += wound_delta;
+
+                // Add mortal wounds
+                if (raw_mortal_wounds[w - n] == null) {
+                    raw_mortal_wounds[w - n] = [1];
+                }
+                var damage = roll_n_dice(n, damage_prob);
+                for (var d = 1; d < damage.length; d++) {
+                    var dam_delta = wound_delta * damage[d];
+                    if (raw_mortal_wounds[w - n][d] == null) {
+                        raw_mortal_wounds[w - n][d] = 0;
+                    }
+                    raw_mortal_wounds[w - n][0] -= dam_delta;
+                    raw_mortal_wounds[w - n][d] += dam_delta;
+                }
+            }
+        }
+
+        // Apply mortal wounds, using the final values of the normal wounds to normalize
+        for (var w = 0; w < raw_mortal_wounds.length; w++) {
+            for (var d = 1; d < raw_mortal_wounds[w].length; d++) {
+                if (raw_mortal_wounds[w][d]) {
+                    var delta = raw_mortal_wounds[w][d] / wounds.normal[w];
+                    if (wounds.mortal[w][d] == null) {
+                        wounds.mortal[w][d] = 0;
+                    }
+                    wounds.mortal[w][0] -= delta;
+                    wounds.mortal[w][d] += delta;
+                }
+            }
+        }
+    } else {
+        for (var w = 0; w < wounds.normal.length; w++) {
             wounds.mortal[w][0] = 1;
         }
     }
@@ -343,12 +403,6 @@ function roll() {
 
     // Saves
 
-    var save_stat = fetch_int_value('save');
-    var invuln_stat = fetch_int_value('invulnerable');
-    var ap_val = fetch_int_value('ap');
-    var save_mod = fetch_int_value('save_mod');
-    var cover = is_checked('cover');
-    var save_reroll = fetch_value('save_reroll');
     // Always treat AP as negative
     ap_val = -Math.abs(ap_val);
     if (isNaN(save_mod)) {
@@ -455,10 +509,7 @@ function roll() {
 
     // Damage
 
-    var damage_val = fetch_value('d');
     var damage_title = damage_val + ' damage';
-    var wound_val = fetch_int_value('wounds');
-    var shake = fetch_value('shake');
     if (shake) {
         if (shake == '6') {
             damage_title += ' (shake on 6)';
@@ -469,7 +520,6 @@ function roll() {
         }
     }
 
-    var damage_prob = dice_sum_prob_array(damage_val).normal;
     damage_prob = shake_damage(damage_prob, shake);
 
     // Change of a mortal wound going through.
