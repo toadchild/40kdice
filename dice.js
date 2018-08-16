@@ -853,7 +853,8 @@ function graph(raw_data, title, chart_name) {
     var chart = charts[chart_name];
 
     // Clean up data for graphing.
-    for(var l = 0; l < raw_data.normal.length; l++) {
+    var max_length = raw_data.normal.length;
+    for(var l = 0; l < max_length; l++) {
         if (raw_data.normal[l] == null) {
             raw_data.normal[l] = 0.0;
         }
@@ -874,6 +875,9 @@ function graph(raw_data, title, chart_name) {
 
         // Mortal wounds are second dimenion and have to be summed across all rows
         if (raw_data.mortal && raw_data.mortal[l]) {
+            if (raw_data.mortal[l].length > max_length) {
+                max_length = raw_data.mortal[l].length;
+            }
             for(var m = 0; m < raw_data.mortal[l].length; m++) {
                 if (mortal[m] == null) {
                     mortal[m] = 0.0;
