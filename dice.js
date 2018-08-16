@@ -174,6 +174,52 @@ function shake_damage(damage_prob, shake) {
     return results;
 }
 
+function rolls_of_6_as_mortal(rolls, six_chance, damage_prob) {
+    var orig_rolls_normal = []
+    var raw_mortal_wounds = [];
+    for (var w = 0; w < rolls.normal.length; w++) {
+        orig_rolls_normal[w] = rolls.normal[w];
+        // Wound of 6+ deals all damage as mortal wounds
+        // Use binomial theorem to find out how likely it is to get n sixes on w dice.
+        for (var n = 1; n <= w; n++) {
+            var n_six_prob = prob(w, n, six_chance);
+
+            // Remove regular rolls
+            var wound_delta = n_six_prob * orig_rolls_normal[w];
+            rolls.normal[w] -= wound_delta;
+            rolls.normal[w - n] += wound_delta;
+
+            // Add mortal wounds
+            if (raw_mortal_wounds[w - n] == null) {
+                raw_mortal_wounds[w - n] = [1];
+            }
+            var damage = roll_n_dice(n, damage_prob);
+            for (var d = 1; d < damage.length; d++) {
+                var dam_delta = wound_delta * damage[d];
+                if (raw_mortal_wounds[w - n][d] == null) {
+                    raw_mortal_wounds[w - n][d] = 0;
+                }
+                raw_mortal_wounds[w - n][0] -= dam_delta;
+                raw_mortal_wounds[w - n][d] += dam_delta;
+            }
+        }
+    }
+
+    // Apply mortal wounds, using the final values of the normal rolls to normalize
+    for (var w = 0; w < raw_mortal_wounds.length; w++) {
+        for (var d = 1; d < raw_mortal_wounds[w].length; d++) {
+            if (raw_mortal_wounds[w][d]) {
+                var delta = raw_mortal_wounds[w][d] / rolls.normal[w];
+                if (rolls.mortal[w][d] == null) {
+                    rolls.mortal[w][d] = 0;
+                }
+                rolls.mortal[w][0] -= delta;
+                rolls.mortal[w][d] += delta;
+            }
+        }
+    }
+}
+
 function roll() {
     // Fetch all values up front
     var hit_dice = fetch_value('attacks');
@@ -236,9 +282,9 @@ function roll() {
     var hits = filter_prob_array(attacks, hit_prob.pass_chance);
 
     // Hit of six generates extra hits
-    if (hit_of_6) {
+    if (hit_of_6 == '2' || hit_of_6 == '1roll') {
         // Probability of a six given that we hit.
-        var six_prob = hit_prob.six_chance / hit_prob.pass_chance;
+        var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
         var bonus_hits = 0;
         var bonus_hit_prob = 0;
 
@@ -262,7 +308,7 @@ function roll() {
 
                 // Use binomial theorem to find out how likely it is to get n sixes on h dice.
                 for (var n = 1; n <= h; n++) {
-                    var n_six_hit_prob = prob(h, n, six_prob);
+                    var n_six_hit_prob = prob(h, n, hit_six_chance);
 
                     // Binomial again to see how many of the bonus hits hit.
                     for (var b = 1; b <= bonus_hits * n; b++) {
@@ -280,6 +326,9 @@ function roll() {
                 }
             }
         }
+    } else if (hit_of_6 == 'mortal') {
+        var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
+        rolls_of_6_as_mortal(hits, hit_six_chance, damage_prob);
     }
 
     graph(hits, hit_title, 'hit');
@@ -350,52 +399,12 @@ function roll() {
             }
         }
     } else if (wound_of_6 == 'mortal') {
-        var orig_wounds_normal = []
-        var raw_mortal_wounds = [];
-        for (var w = 0; w < wounds.normal.length; w++) {
-            orig_wounds_normal[w] = wounds.normal[w];
-            // Wound of 6+ deals all damage as mortal wounds
-            // Use binomial theorem to find out how likely it is to get n sixes on w dice.
-            for (var n = 1; n <= w; n++) {
-                var n_six_prob = prob(w, n, wound_six_chance);
-
-                // Remove regular wounds
-                var wound_delta = n_six_prob * orig_wounds_normal[w];
-                wounds.normal[w] -= wound_delta;
-                wounds.normal[w - n] += wound_delta;
-
-                // Add mortal wounds
-                if (raw_mortal_wounds[w - n] == null) {
-                    raw_mortal_wounds[w - n] = [1];
-                }
-                var damage = roll_n_dice(n, damage_prob);
-                for (var d = 1; d < damage.length; d++) {
-                    var dam_delta = wound_delta * damage[d];
-                    if (raw_mortal_wounds[w - n][d] == null) {
-                        raw_mortal_wounds[w - n][d] = 0;
-                    }
-                    raw_mortal_wounds[w - n][0] -= dam_delta;
-                    raw_mortal_wounds[w - n][d] += dam_delta;
-                }
-            }
-        }
-
-        // Apply mortal wounds, using the final values of the normal wounds to normalize
-        for (var w = 0; w < raw_mortal_wounds.length; w++) {
-            for (var d = 1; d < raw_mortal_wounds[w].length; d++) {
-                if (raw_mortal_wounds[w][d]) {
-                    var delta = raw_mortal_wounds[w][d] / wounds.normal[w];
-                    if (wounds.mortal[w][d] == null) {
-                        wounds.mortal[w][d] = 0;
-                    }
-                    wounds.mortal[w][0] -= delta;
-                    wounds.mortal[w][d] += delta;
-                }
-            }
-        }
+        rolls_of_6_as_mortal(wounds, wound_six_chance, damage_prob);
     } else {
         for (var w = 0; w < wounds.normal.length; w++) {
-            wounds.mortal[w][0] = 1;
+            if (wounds.mortal[w] == null) {
+                wounds.mortal[w] = [1];
+            }
         }
     }
 
@@ -464,7 +473,7 @@ function roll() {
     // wounds of 6 get -1 additional AP
     if (wound_of_6 == '-1' || wound_of_6 == '-3' || wound_of_6 == '-4') {
         // Probability of a six given that we wound.
-        var six_prob = wound_prob.six_chance / wound_prob.pass_chance;
+        var wound_six_chance = wound_prob.six_chance / wound_prob.pass_chance;
         var ap_mod = parseInt(wound_of_6, 10);
 
         // calculate save chance with modified AP.
@@ -483,8 +492,8 @@ function roll() {
         // Set the save chance as a weighted combination of normal hits
         // and AP-X hits.
         // 1 chance and 6 chance are no longer accurate.
-        save_prob.pass_chance = six_prob * ap_save_prob.pass_chance + (1 - six_prob) * save_prob.pass_chance;
-        save_prob.fail_chance = six_prob * ap_save_prob.fail_chance + (1 - six_prob) * save_prob.fail_chance;
+        save_prob.pass_chance = wound_six_chance * ap_save_prob.pass_chance + (1 - wound_six_chance) * save_prob.pass_chance;
+        save_prob.fail_chance = wound_six_chance * ap_save_prob.fail_chance + (1 - wound_six_chance) * save_prob.fail_chance;
     }
 
     // Use whichever save is better.  Includes rerolls.
