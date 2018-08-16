@@ -175,19 +175,19 @@ function shake_damage(damage_prob, shake) {
 }
 
 function rolls_of_6_as_mortal(rolls, six_chance, damage_prob) {
-    var orig_rolls_normal = []
     var raw_mortal_wounds = [];
+    var new_rolls = {'normal': [], 'mortal': []};
     for (var w = 0; w < rolls.normal.length; w++) {
-        orig_rolls_normal[w] = rolls.normal[w];
+        new_rolls.normal[w] = rolls.normal[w];
         // Wound of 6+ deals all damage as mortal wounds
         // Use binomial theorem to find out how likely it is to get n sixes on w dice.
         for (var n = 1; n <= w; n++) {
             var n_six_prob = prob(w, n, six_chance);
 
             // Remove regular rolls
-            var wound_delta = n_six_prob * orig_rolls_normal[w];
-            rolls.normal[w] -= wound_delta;
-            rolls.normal[w - n] += wound_delta;
+            var wound_delta = n_six_prob * rolls.normal[w];
+            new_rolls.normal[w] -= wound_delta;
+            new_rolls.normal[w - n] += wound_delta;
 
             // Add mortal wounds
             if (raw_mortal_wounds[w - n] == null) {
@@ -195,10 +195,10 @@ function rolls_of_6_as_mortal(rolls, six_chance, damage_prob) {
             }
             var damage = roll_n_dice(n, damage_prob);
             for (var d = 1; d < damage.length; d++) {
-                var dam_delta = wound_delta * damage[d];
                 if (raw_mortal_wounds[w - n][d] == null) {
                     raw_mortal_wounds[w - n][d] = 0;
                 }
+                var dam_delta = wound_delta * damage[d];
                 raw_mortal_wounds[w - n][0] -= dam_delta;
                 raw_mortal_wounds[w - n][d] += dam_delta;
             }
@@ -206,18 +206,27 @@ function rolls_of_6_as_mortal(rolls, six_chance, damage_prob) {
     }
 
     // Apply mortal wounds, using the final values of the normal rolls to normalize
+    for (var w = 0; w < rolls.mortal.length; w++) {
+        new_rolls.mortal[w] = [];
+        for (var m = 0; m < rolls.mortal[w].length; m++) {
+            new_rolls.mortal[w][m] = rolls.mortal[w][m];
+        }
+    }
+
     for (var w = 0; w < raw_mortal_wounds.length; w++) {
         for (var d = 1; d < raw_mortal_wounds[w].length; d++) {
             if (raw_mortal_wounds[w][d]) {
-                var delta = raw_mortal_wounds[w][d] / rolls.normal[w];
-                if (rolls.mortal[w][d] == null) {
-                    rolls.mortal[w][d] = 0;
+                if (new_rolls.mortal[w][d] == null) {
+                    new_rolls.mortal[w][d] = 0;
                 }
-                rolls.mortal[w][0] -= delta;
-                rolls.mortal[w][d] += delta;
+                var delta = raw_mortal_wounds[w][d] / new_rolls.normal[w];
+                new_rolls.mortal[w][0] -= delta;
+                new_rolls.mortal[w][d] += delta;
             }
         }
     }
+
+    return new_rolls;
 }
 
 function roll() {
@@ -327,8 +336,10 @@ function roll() {
             }
         }
     } else if (hit_of_6 == 'mortal') {
+        // Note that this introduces a slight inaccuracy if a wound roll of 6 effect is also selected.
+        // These hits don't trigger wound rolls, and thus the effects may not be combined correctly.
         var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
-        rolls_of_6_as_mortal(hits, hit_six_chance, damage_prob);
+        hits = rolls_of_6_as_mortal(hits, hit_six_chance, damage_prob);
     }
 
     graph(hits, hit_title, 'hit');
@@ -399,7 +410,7 @@ function roll() {
             }
         }
     } else if (wound_of_6 == 'mortal') {
-        rolls_of_6_as_mortal(wounds, wound_six_chance, damage_prob);
+        wounds = rolls_of_6_as_mortal(wounds, wound_six_chance, damage_prob);
     } else {
         for (var w = 0; w < wounds.normal.length; w++) {
             if (wounds.mortal[w] == null) {
