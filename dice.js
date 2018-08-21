@@ -398,7 +398,7 @@ function do_saves(save_stat, invuln_stat, ap_val, save_mod, save_reroll, wound_o
     if (isNaN(save_stat)) {
         save_stat = 100;
     }
-    if (isNaN(invuln_stat)) {
+    if (isNaN(invuln_stat) || invuln_stat == null) {
         invuln_stat = 100;
     }
 
@@ -568,6 +568,23 @@ function do_killed_40k(damage_prob, shake, unsaved, wound_val) {
     return killed;
 }
 
+function do_killed_aos(damage, wound_val) {
+    var killed = {'normal': []};
+    var killed_title = 'models killed';
+    if (wound_val) {
+        for(var n = 0; n < damage.normal.length; n++) {
+            var kills = Math.floor(n / wound_val);
+            if (killed.normal[kills] == null) {
+                killed.normal[kills] = 0;
+            }
+            killed.normal[kills] += damage.normal[n];
+        }
+    }
+
+    graph(killed, killed_title, 'killed');
+    return killed;
+}
+
 function roll_40k() {
     // Fetch all values up front
     var hit_dice = fetch_value('attacks');
@@ -627,7 +644,53 @@ function roll_40k() {
     // Models Killed
     var killed = do_killed_40k(damage_prob, shake, unsaved, wound_val);
 
-    generate_permalink();
+    generate_permalink_40k();
+}
+
+function roll_aos() {
+    // Fetch all values up front
+    var hit_dice = fetch_value('attacks');
+    var hit_stat = fetch_int_value('hit');
+    var hit_mod = fetch_int_value('hit_mod');
+    var hit_reroll = fetch_value('hit_reroll');
+    var hit_of_6 = fetch_value('hit_of_6');
+    var wound_stat = fetch_int_value('wound');
+    var wound_mod = fetch_int_value('wound_mod');
+    var wound_reroll = fetch_value('wound_reroll');
+    var wound_of_6 = fetch_value('wound_of_6');
+    var save_stat = fetch_int_value('save');
+    var rend_val = fetch_int_value('rend');
+    var save_mod = fetch_int_value('save_mod');
+    var cover = is_checked('cover');
+    var save_reroll = fetch_value('save_reroll');
+    var damage_val = fetch_value('d');
+    var wound_val = fetch_int_value('wounds');
+    var shake = fetch_value('shake');
+
+    var damage_prob = dice_sum_prob_array(damage_val).normal;
+
+    // Number of attacks
+    var attacks = dice_sum_prob_array(hit_dice);
+    var attack_title = hit_dice + ' attacks';
+
+    graph(attacks, attack_title, 'attack');
+
+    // Hits
+    var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob);
+
+    // Wounds
+    var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, hit_of_6, hits, wound_of_6, damage_prob);
+
+    // Saves
+    var unsaved = do_saves(save_stat, null, rend_val, save_mod, save_reroll, wound_of_6, wounds);
+
+    // Damage
+    var damage = do_damage(damage_val, shake, damage_prob, unsaved);
+
+    // Models Killed
+    var killed = do_killed_aos(damage, wound_val);
+
+    generate_permalink_aos();
 }
 
 // Binomial expansion.
@@ -951,6 +1014,11 @@ function graph(raw_data, title, chart_name) {
 
 var charts = [];
 
+
+// 40K Init
+var fields_40k = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'wound_mod', 'save_mod', 'invulnerable', 'wounds'];
+var checkboxes_40k = ['cover'];
+var selects_40k = ['hit_of_6', 'hit_reroll', 'wound_of_6', 'wound_reroll', 'save_reroll', 'shake'];
 function init_40k() {
     charts['attack'] = init_chart('attack_chart', '{n} attacks: ', '>= {n} attacks: ', 'expected: {n} attacks');
     charts['hit'] = init_chart('hit_chart', '{n} hits: ', '>= {n} hits: ', 'expected: {n} hits');
@@ -968,11 +1036,11 @@ function init_40k() {
                 var pair = pairs[i].split('=');
                 var key = decodeURIComponent(pair[0]);
                 var value = decodeURIComponent(pair[1]);
-                if (fields.indexOf(key) > -1) {
+                if (fields_40k.indexOf(key) > -1) {
                     document.getElementById(key).value = value;
-                } else if (checkboxes.indexOf(key) > -1) {
+                } else if (checkboxes_40k.indexOf(key) > -1) {
                     document.getElementById(key).checked = true;
-                } else if (selects.indexOf(key) > -1) {
+                } else if (selects_40k.indexOf(key) > -1) {
                     document.getElementById(key).value = value;
                 }
             }
@@ -981,30 +1049,83 @@ function init_40k() {
     }
 }
 
-var fields = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'wound_mod', 'save_mod', 'invulnerable', 'wounds'];
-var checkboxes = ['cover'];
-var selects = ['hit_of_6', 'hit_reroll', 'wound_of_6', 'wound_reroll', 'save_reroll', 'shake'];
-function generate_permalink() {
+function generate_permalink_40k() {
     var pairs = [];
-    for(var i = 0; i < fields.length; i++) {
-        if (document.getElementById(fields[i]).value) {
-            pairs[pairs.length] = fields[i] + '=' + document.getElementById(fields[i]).value;
+    for(var i = 0; i < fields_40k.length; i++) {
+        if (document.getElementById(fields_40k[i]).value) {
+            pairs[pairs.length] = fields_40k[i] + '=' + document.getElementById(fields_40k[i]).value;
         }
     }
-    for(var i = 0; i < checkboxes.length; i++) {
-        if (document.getElementById(checkboxes[i]).checked) {
-            pairs[pairs.length] = checkboxes[i];
+    for(var i = 0; i < checkboxes_40k.length; i++) {
+        if (document.getElementById(checkboxes_40k[i]).checked) {
+            pairs[pairs.length] = checkboxes_40k[i];
         }
     }
-    for(var i = 0; i < selects.length; i++) {
-        if (document.getElementById(selects[i]).value) {
-            pairs[pairs.length] = selects[i] + '=' + document.getElementById(selects[i]).value;;
+    for(var i = 0; i < selects_40k.length; i++) {
+        if (document.getElementById(selects_40k[i]).value) {
+            pairs[pairs.length] = selects_40k[i] + '=' + document.getElementById(selects_40k[i]).value;;
         }
     }
     var query = pairs.join('&');
     location.hash = query;
 }
 
+// AoS Init
+var fields_aos = ['attacks', 'hit', 'rend', 'wound', 'd', 'save', 'hit_mod', 'wound_mod', 'save_mod', 'wounds'];
+var checkboxes_aos = ['cover'];
+var selects_aos = ['hit_of_6', 'hit_reroll', 'wound_of_6', 'wound_reroll', 'save_reroll', 'shake'];
+function init_aos() {
+    charts['attack'] = init_chart('attack_chart', '{n} attacks: ', '>= {n} attacks: ', 'expected: {n} attacks');
+    charts['hit'] = init_chart('hit_chart', '{n} hits: ', '>= {n} hits: ', 'expected: {n} hits');
+    charts['wound'] = init_chart('wound_chart', '{n} wounds: ', '>= {n} wounds: ', 'expected: {n} wounds');
+    charts['unsaved'] = init_chart('unsaved_chart', '{n} unsaved: ', '>= {n} unsaved: ', 'expected: {n} unsaved');
+    charts['damage'] = init_chart('damage_chart', '{n} damage: ', '>= {n} damage: ', 'expected: {n} damage');
+    charts['killed'] = init_chart('killed_chart', '{n} killed: ', '>= {n} killed: ', 'expected: {n} killed');
+
+    // Populate fields from the parameter string.
+    var params = location.hash.substring(1);
+    if (params) {
+        var pairs = params.split('&');
+        if (pairs.length) {
+            for (var i = 0; i < pairs.length; i++) {
+                var pair = pairs[i].split('=');
+                var key = decodeURIComponent(pair[0]);
+                var value = decodeURIComponent(pair[1]);
+                if (fields_aos.indexOf(key) > -1) {
+                    document.getElementById(key).value = value;
+                } else if (checkboxes_aos.indexOf(key) > -1) {
+                    document.getElementById(key).checked = true;
+                } else if (selects_aos.indexOf(key) > -1) {
+                    document.getElementById(key).value = value;
+                }
+            }
+            roll_aos();
+        }
+    }
+}
+
+function generate_permalink_aos() {
+    var pairs = [];
+    for(var i = 0; i < fields_aos.length; i++) {
+        if (document.getElementById(fields_aos[i]).value) {
+            pairs[pairs.length] = fields_aos[i] + '=' + document.getElementById(fields_aos[i]).value;
+        }
+    }
+    for(var i = 0; i < checkboxes_aos.length; i++) {
+        if (document.getElementById(checkboxes_aos[i]).checked) {
+            pairs[pairs.length] = checkboxes_aos[i];
+        }
+    }
+    for(var i = 0; i < selects_aos.length; i++) {
+        if (document.getElementById(selects_aos[i]).value) {
+            pairs[pairs.length] = selects_aos[i] + '=' + document.getElementById(selects_aos[i]).value;;
+        }
+    }
+    var query = pairs.join('&');
+    location.hash = query;
+}
+
+// Shared Init
 function init_chart(chart_name, bar_label, line_label, ev_label) {
     var ctx = document.getElementById(chart_name);
     var mortal_label = '{n} mortal: ';

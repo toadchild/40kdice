@@ -2,20 +2,20 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>40K Visual Dice Calculator (8th Ed)</title>
+        <title>AoS Visual Dice Calculator</title>
         <link href="dice.css" rel="stylesheet" type="text/css">
         <script type="text/javascript" src="dice-TOKEN.js"></script>
         <script type="text/javascript" src="chart.js/dist/Chart.js"></script>
     </head>
-    <body onload="init_40k()">
-    <h1>40K Visual Dice Calculator (8th Ed)</h1>
+    <body onload="init_aos()">
+    <h1>AoS Visual Dice Calculator</h1>
 
     <div>
         <h2>Attack Stats</h2>
         <p><label>Attacks: <input type="text" id="attacks"></label>
         <span class="description">Ex: 4, 2d6</span>
         </p>
-        <p><label>BS/WS: <input type="text" id="bs"></label>
+        <p><label>To Hit: <input type="text" id="hit"></label>
         <span class="description">Ex: 4, leave blank to auto-hit</span>
         </p>
         <p><label>Hit Modifier: <input type="text" id="hit_mod"></label>
@@ -38,10 +38,10 @@
             <option value="fail">Failed hit rolls</option>
         </select>
         </p>
-        <p><label>S: <input type="text" id="s"></label>
+        <p><label>To Wound: <input type="text" id="wound"></label>
         <span class="description">Ex: 4, leave blank to auto-wound</span>
         </p>
-        <p><label>AP: <input type="text" id="ap"></label>
+        <p><label>Rend: <input type="text" id="rend"></label>
         <span class="description">Ex: -1, 2 (sign is ignored)</span>
         </p>
         <p><label>Wound Modifier: <input type="text" id="wound_mod"></label>
@@ -69,9 +69,6 @@
     </div>
     <div>
         <h2>Defense Stats</h2>
-        <p><label>T: <input type="text" id="t"></label>
-        <span class="description">Ex: 4, leave blank to auto-wound</span>
-        </p>
         <p><label>Save: <input type="text" id="save"></label>
         <span class="description">Ex: 4</span>
         </p>
@@ -81,16 +78,10 @@
         <p>
         <label><input type="checkbox" id="cover" value="1">Cover</label>
         </p>
-        <p><label>Invulnerable Save: <input type="text" id="invulnerable"></label>
-        <span class="description">Ex: 4</span>
-        </p>
-        <p>
         Reroll: <select id="save_reroll">
             <option value="">No save rolls</option>
             <option value="1">Any save rolls of 1</option>
             <option value="fail">Any failed save rolls</option>
-            <option value="inv_1">Invulnerable save rolls of 1</option>
-            <option value="inv_fail">Failed invulnerable save rolls</option>
         </select>
         </p>
         <p><label>Wounds per model: <input type="text" id="wounds"></label>
@@ -103,7 +94,7 @@
             <option value="quantum">Roll under the damage value</option>
         </select>
     </div>
-    <p><button onclick="roll_40k()">Roll</button></p>
+    <p><button onclick="roll_aos()">Roll</button></p>
 
     <div class="output">
         <div class="chart">
@@ -143,9 +134,9 @@
     </div>
 
     <p class="endnote">
-    This tool was created by <a href="http://ghostlords.com/">Jonathan Polley</a> to help enhance your enjoyment of Warhammer 40000.
+    This tool was created by <a href="http://ghostlords.com/">Jonathan Polley</a> to help enhance your enjoyment of Warhammer: Age of Sigmar.
     Please direct any feedback to <a href="mailto:40k@ghostlords.com">40k@ghostlords.com</a>.<br>
-    <a href="https://www.games-workshop.com/Warhammer-40-000">Warhammer 40000</a> is &copy; Games Workshop Limited.<br>
+    <a href="https://www.games-workshop.com/Warhammer">Warhammer: Age of Sigmar</a> is &copy; Games Workshop Limited.<br>
     </p>
     </body>
 </html>
