@@ -229,39 +229,7 @@ function rolls_of_6_as_mortal(rolls, six_chance, damage_prob) {
     return new_rolls;
 }
 
-function roll() {
-    // Fetch all values up front
-    var hit_dice = fetch_value('attacks');
-    var hit_stat = fetch_int_value('bs');
-    var hit_mod = fetch_int_value('hit_mod');
-    var hit_reroll = fetch_value('hit_reroll');
-    var hit_of_6 = fetch_value('hit_of_6');
-    var s = fetch_int_value('s');
-    var t = fetch_int_value('t');
-    var wound_mod = fetch_int_value('wound_mod');
-    var wound_reroll = fetch_value('wound_reroll');
-    var wound_of_6 = fetch_value('wound_of_6');
-    var save_stat = fetch_int_value('save');
-    var invuln_stat = fetch_int_value('invulnerable');
-    var ap_val = fetch_int_value('ap');
-    var save_mod = fetch_int_value('save_mod');
-    var cover = is_checked('cover');
-    var save_reroll = fetch_value('save_reroll');
-    var damage_val = fetch_value('d');
-    var wound_val = fetch_int_value('wounds');
-    var shake = fetch_value('shake');
-
-    var damage_prob = dice_sum_prob_array(damage_val).normal;
-
-    // Number of attacks
-
-    var attacks = dice_sum_prob_array(hit_dice);
-    var attack_title = hit_dice + ' attacks';
-
-    graph(attacks, attack_title, 'attack');
-
-    // Hits
-
+function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob) {
     var hit_prob = success_chance(hit_stat, hit_mod);
     var hit_title;
     if (hit_prob.pass_chance == 1) {
@@ -344,23 +312,10 @@ function roll() {
 
     graph(hits, hit_title, 'hit');
 
-    // Wounds
+    return hits;
+}
 
-    var wound_stat;
-    if (!s || !t) {
-        wound_stat = Number.NaN;
-    } else if (t >= s * 2) {
-        wound_stat = 6;
-    } else if (t > s) {
-        wound_stat = 5;
-    } else if (s >= t * 2) {
-        wound_stat = 2;
-    } else if (s > t) {
-        wound_stat = 3;
-    } else {
-        wound_stat = 4;
-    }
-
+function do_wounds(wound_stat, wound_mod, wound_reroll, hit_of_6, hits, wound_of_6, damage_prob) {
     var wound_prob = success_chance(wound_stat, wound_mod);
     var wound_title;
     if (wound_prob.pass_chance == 1) {
@@ -421,8 +376,10 @@ function roll() {
 
     graph(wounds, wound_title, 'wound');
 
-    // Saves
+    return wounds;
+}
 
+function do_saves(save_stat, invuln_stat, ap_val, save_mod, save_reroll, wound_of_6, wounds) {
     // Always treat AP as negative
     ap_val = -Math.abs(ap_val);
     if (isNaN(save_mod)) {
@@ -526,9 +483,10 @@ function roll() {
     }
 
     graph(unsaved, unsaved_title, 'unsaved');
+    return unsaved;
+}
 
-    // Damage
-
+function do_damage(damage_val, shake, damage_prob, unsaved) {
     var damage_title = damage_val + ' damage';
     if (shake) {
         if (shake == '6') {
@@ -571,11 +529,14 @@ function roll() {
     }
 
     graph(damage, damage_title, 'damage');
+    return damage;
+}
 
-    // Models Killed
-
+function do_killed_40k(damage_prob, shake, unsaved, wound_val) {
     var killed = {'normal': []};
     var killed_title = 'models killed';
+    damage_prob = shake_damage(damage_prob, shake);
+    var mortal_damage_chance = shake_damage([0, 1], shake)[1];
     if (wound_val) {
         for(var n = 0; n < unsaved.normal.length; n++) {
             // Generate killed array for this many impacts.
@@ -604,6 +565,67 @@ function roll() {
     }
 
     graph(killed, killed_title, 'killed');
+    return killed;
+}
+
+function roll_40k() {
+    // Fetch all values up front
+    var hit_dice = fetch_value('attacks');
+    var hit_stat = fetch_int_value('bs');
+    var hit_mod = fetch_int_value('hit_mod');
+    var hit_reroll = fetch_value('hit_reroll');
+    var hit_of_6 = fetch_value('hit_of_6');
+    var s = fetch_int_value('s');
+    var t = fetch_int_value('t');
+    var wound_mod = fetch_int_value('wound_mod');
+    var wound_reroll = fetch_value('wound_reroll');
+    var wound_of_6 = fetch_value('wound_of_6');
+    var save_stat = fetch_int_value('save');
+    var invuln_stat = fetch_int_value('invulnerable');
+    var ap_val = fetch_int_value('ap');
+    var save_mod = fetch_int_value('save_mod');
+    var cover = is_checked('cover');
+    var save_reroll = fetch_value('save_reroll');
+    var damage_val = fetch_value('d');
+    var wound_val = fetch_int_value('wounds');
+    var shake = fetch_value('shake');
+
+    var damage_prob = dice_sum_prob_array(damage_val).normal;
+
+    // Number of attacks
+    var attacks = dice_sum_prob_array(hit_dice);
+    var attack_title = hit_dice + ' attacks';
+
+    graph(attacks, attack_title, 'attack');
+
+    // Hits
+    var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob);
+
+    // Wounds
+    var wound_stat;
+    if (!s || !t) {
+        wound_stat = Number.NaN;
+    } else if (t >= s * 2) {
+        wound_stat = 6;
+    } else if (t > s) {
+        wound_stat = 5;
+    } else if (s >= t * 2) {
+        wound_stat = 2;
+    } else if (s > t) {
+        wound_stat = 3;
+    } else {
+        wound_stat = 4;
+    }
+    var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, hit_of_6, hits, wound_of_6, damage_prob);
+
+    // Saves
+    var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, save_reroll, wound_of_6, wounds);
+
+    // Damage
+    var damage = do_damage(damage_val, shake, damage_prob, unsaved);
+
+    // Models Killed
+    var killed = do_killed_40k(damage_prob, shake, unsaved, wound_val);
 
     generate_permalink();
 }
@@ -929,7 +951,7 @@ function graph(raw_data, title, chart_name) {
 
 var charts = [];
 
-function init() {
+function init_40k() {
     charts['attack'] = init_chart('attack_chart', '{n} attacks: ', '>= {n} attacks: ', 'expected: {n} attacks');
     charts['hit'] = init_chart('hit_chart', '{n} hits: ', '>= {n} hits: ', 'expected: {n} hits');
     charts['wound'] = init_chart('wound_chart', '{n} wounds: ', '>= {n} wounds: ', 'expected: {n} wounds');
@@ -954,7 +976,7 @@ function init() {
                     document.getElementById(key).value = value;
                 }
             }
-            roll();
+            roll_40k();
         }
     }
 }
