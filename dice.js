@@ -379,7 +379,7 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, hit_of_6, hits, wound_of
     return wounds;
 }
 
-function do_saves(save_stat, invuln_stat, ap_val, save_mod, save_reroll, wound_of_6, wounds) {
+function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, wound_of_6, wounds) {
     // Always treat AP as negative
     ap_val = -Math.abs(ap_val);
     if (isNaN(save_mod)) {
@@ -636,7 +636,7 @@ function roll_40k() {
     var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, hit_of_6, hits, wound_of_6, damage_prob);
 
     // Saves
-    var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, save_reroll, wound_of_6, wounds);
+    var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, wound_of_6, wounds);
 
     // Damage
     var damage = do_damage(damage_val, shake, damage_prob, unsaved);
@@ -682,7 +682,7 @@ function roll_aos() {
     var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, hit_of_6, hits, wound_of_6, damage_prob);
 
     // Saves
-    var unsaved = do_saves(save_stat, null, rend_val, save_mod, save_reroll, wound_of_6, wounds);
+    var unsaved = do_saves(save_stat, null, rend_val, save_mod, cover, save_reroll, wound_of_6, wounds);
 
     // Damage
     var damage = do_damage(damage_val, shake, damage_prob, unsaved);
