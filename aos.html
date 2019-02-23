@@ -6,6 +6,10 @@
         <link href="dice.css" rel="stylesheet" type="text/css">
         <script type="text/javascript" src="dice-TOKEN.js"></script>
         <script type="text/javascript" src="chart.js/dist/Chart.js"></script>
+        <link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://ghostlords.com/favicon-144.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="http://ghostlords.com/favicon-152.png" />
+        <link rel="icon" type="image/png" href="http://ghostlords.com/favicon-32.png" sizes="32x32" />
+        <link rel="icon" type="image/png" href="http://ghostlords.com/favicon-16.png" sizes="16x16" />
     </head>
     <body onload="init_aos()">
     <h1>AoS Visual Dice Calculator</h1>
@@ -27,8 +31,10 @@
         <select id="hit_of_6">
             <option value="">Do nothing special</option>
             <option value="1roll">Generate 1 extra hit roll</option>
+            <option value="1">Generate 1 extra hit</option>
             <option value="2">Generate 2 extra hits</option>
             <option value="autowound">Automatically pass their wound roll</option>
+            <option value="+mortal">Deal 1 mortal wound in addition to regular damage</option>
             <option value="mortal">Deal their damage as mortal wounds</option>
         </select>
         </p>

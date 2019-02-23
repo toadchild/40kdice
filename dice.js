@@ -229,6 +229,22 @@ function rolls_of_6_as_mortal(rolls, six_chance, damage_prob) {
     return new_rolls;
 }
 
+function rolls_of_6_add_mortal(rolls, six_chance) {
+    for (var w = 0; w < rolls.normal.length; w++) {
+        // Roll of 6+ deals 1 mortal wound in addition to normal wounds
+        // Use binomial theorem to find out how likely it is to get n sixes on w dice.
+        for (var n = 0; n <= w; n++) {
+            var n_six_prob = prob(w, n, six_chance);
+
+            if (rolls.mortal[w][n] == null) {
+                rolls.mortal[w][n] = 0;
+            }
+            rolls.mortal[w][n] += n_six_prob;
+            rolls.mortal[w][0] -= n_six_prob;
+        }
+    }
+}
+
 function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob) {
     var hit_prob = success_chance(hit_stat, hit_mod);
     var hit_title;
@@ -259,15 +275,19 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob) 
     var hits = filter_prob_array(attacks, hit_prob.pass_chance);
 
     // Hit of six generates extra hits
-    if (hit_of_6 == '2' || hit_of_6 == '1roll') {
+    var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
+    if (hit_of_6 == '2' || hit_of_6 == '1' || hit_of_6 == '1roll') {
         // Probability of a six given that we hit.
-        var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
         var bonus_hits = 0;
         var bonus_hit_prob = 0;
 
         if (hit_of_6 == '2') {
             hit_title += ', 6s do 3 hits';
             bonus_hits = 2;
+            bonus_hit_prob = 1.0;
+        } else if (hit_of_6 == '1') {
+            hit_title += ', 6s do 2 hits';
+            bonus_hits = 1;
             bonus_hit_prob = 1.0;
         } else if (hit_of_6 == '1roll') {
             hit_title += ', 6s add 1 hit roll';
@@ -306,8 +326,9 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob) 
     } else if (hit_of_6 == 'mortal') {
         // Note that this introduces a slight inaccuracy if a wound roll of 6 effect is also selected.
         // These hits don't trigger wound rolls, and thus the effects may not be combined correctly.
-        var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
         hits = rolls_of_6_as_mortal(hits, hit_six_chance, damage_prob);
+    } else if (hit_of_6 == '+mortal') {
+        rolls_of_6_add_mortal(hits, hit_six_chance);
     }
 
     graph(hits, hit_title, 'hit');
@@ -351,19 +372,7 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, hit_of_6, hits, wound_of
     // Probability of a six given that we wound.
     var wound_six_chance = wound_prob.six_chance / wound_prob.pass_chance;
     if (wound_of_6 == '+mortal') {
-        for (var w = 0; w < wounds.normal.length; w++) {
-            // Wound of 6+ deals 1 mortal wound in addition to normal wounds
-            // Use binomial theorem to find out how likely it is to get n sixes on w dice.
-            for (var n = 0; n <= w; n++) {
-                var n_six_prob = prob(w, n, wound_six_chance);
-
-                if (wounds.mortal[w][n] == null) {
-                    wounds.mortal[w][n] = 0;
-                }
-                wounds.mortal[w][n] += n_six_prob;
-                wounds.mortal[w][0] -= n_six_prob;
-            }
-        }
+        rolls_of_6_add_mortal(wounds, wound_six_chance);
     } else if (wound_of_6 == 'mortal') {
         wounds = rolls_of_6_as_mortal(wounds, wound_six_chance, damage_prob);
     } else {
