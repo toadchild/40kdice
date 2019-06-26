@@ -336,21 +336,13 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob) 
     return hits;
 }
 
-function do_wounds(wound_stat, wound_mod, wound_reroll, hit_of_6, hits, wound_of_6, damage_prob) {
+function calc_wound_prob(wound_stat, wound_mod, wound_reroll) {
     var wound_prob = success_chance(wound_stat, wound_mod);
-    var wound_title;
-    if (wound_prob.pass_chance == 1) {
-        wound_title = 'auto-wound';
-    } else {
-        wound_title = 'wound on ' + wound_stat + '+';
-    }
 
     // Rerolls
     if (wound_reroll == 'fail') {
-        wound_title += ', reroll misses';
         wound_prob = reroll(wound_prob);
     } else if (wound_reroll == '1') {
-        wound_title += ', reroll 1s';
         wound_prob = reroll_1(wound_prob);
     }
 
@@ -362,6 +354,24 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, hit_of_6, hits, wound_of
         wound_prob.fail_chance = wound_prob.fail_chance * (1.0 - hit_six_chance);
         wound_prob.natural_fail_chance = wound_prob.natural_fail_chance * (1.0 - hit_six_chance);
         wound_prob.six_chance = wound_prob.six_chance * (1.0 - hit_six_chance);
+    }
+
+    return wound_prob;
+}
+
+function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hit_of_6, hits, wound_of_6, damage_prob) {
+    var wound_title;
+    if (wound_prob.pass_chance == 1) {
+        wound_title = 'auto-wound';
+    } else {
+        wound_title = 'wound on ' + wound_stat + '+';
+    }
+
+    // Rerolls
+    if (wound_reroll == 'fail') {
+        wound_title += ', reroll failed';
+    } else if (wound_reroll == '1') {
+        wound_title += ', reroll 1s';
     }
 
     // Apply probability filter
@@ -388,7 +398,7 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, hit_of_6, hits, wound_of
     return wounds;
 }
 
-function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, wound_of_6, wounds) {
+function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, wound_of_6, wounds, wound_prob) {
     // Always treat AP as negative
     ap_val = -Math.abs(ap_val);
     if (isNaN(save_mod)) {
@@ -642,10 +652,11 @@ function roll_40k() {
     } else {
         wound_stat = 4;
     }
-    var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, hit_of_6, hits, wound_of_6, damage_prob);
+    var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll);
+    var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hit_of_6, hits, wound_of_6, damage_prob);
 
     // Saves
-    var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, wound_of_6, wounds);
+    var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, wound_of_6, wounds, wound_prob);
 
     // Damage
     var damage = do_damage(damage_val, shake, damage_prob, unsaved);
@@ -688,10 +699,11 @@ function roll_aos() {
     var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob);
 
     // Wounds
-    var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, hit_of_6, hits, wound_of_6, damage_prob);
+    var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll);
+    var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hit_of_6, hits, wound_of_6, damage_prob);
 
     // Saves
-    var unsaved = do_saves(save_stat, null, rend_val, save_mod, cover, save_reroll, wound_of_6, wounds);
+    var unsaved = do_saves(save_stat, null, rend_val, save_mod, cover, save_reroll, wound_of_6, wounds, wound_prob);
 
     // Damage
     var damage = do_damage(damage_val, shake, damage_prob, unsaved);
