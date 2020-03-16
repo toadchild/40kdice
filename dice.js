@@ -177,6 +177,8 @@ function shake_damage(damage_prob, shake) {
 function rolls_of_6_as_mortal(rolls, six_chance, damage_prob) {
     var raw_mortal_wounds = [];
     var new_rolls = {'normal': [], 'mortal': []};
+
+    // Calculate base probability of a given number of mortal wounds.
     for (var w = 0; w < rolls.normal.length; w++) {
         new_rolls.normal[w] = rolls.normal[w];
         // Wound of 6+ deals all damage as mortal wounds
@@ -205,7 +207,7 @@ function rolls_of_6_as_mortal(rolls, six_chance, damage_prob) {
         }
     }
 
-    // Apply mortal wounds, using the final values of the normal rolls to normalize
+    // Deep copy mortal wound distribution from input.
     for (var w = 0; w < rolls.mortal.length; w++) {
         new_rolls.mortal[w] = [];
         for (var m = 0; m < rolls.mortal[w].length; m++) {
@@ -213,12 +215,13 @@ function rolls_of_6_as_mortal(rolls, six_chance, damage_prob) {
         }
     }
 
+    // Apply mortal wounds, using the final values of the normal rolls to normalize.
     for (var w = 0; w < raw_mortal_wounds.length; w++) {
         for (var d = 1; d < raw_mortal_wounds[w].length; d++) {
+            if (new_rolls.mortal[w][d] == null) {
+                new_rolls.mortal[w][d] = 0;
+            }
             if (raw_mortal_wounds[w][d]) {
-                if (new_rolls.mortal[w][d] == null) {
-                    new_rolls.mortal[w][d] = 0;
-                }
                 var delta = raw_mortal_wounds[w][d] / new_rolls.normal[w];
                 new_rolls.mortal[w][0] -= delta;
                 new_rolls.mortal[w][d] += delta;
