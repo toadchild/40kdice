@@ -248,8 +248,7 @@ function rolls_of_6_add_mortal(rolls, six_chance) {
     }
 }
 
-function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob) {
-    var hit_prob = success_chance(hit_stat, hit_mod);
+function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob, hit_prob) {
     var hit_title;
     if (hit_prob.pass_chance == 1) {
         hit_title = 'auto-hit';
@@ -339,7 +338,7 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob) 
     return hits;
 }
 
-function calc_wound_prob(wound_stat, wound_mod, wound_reroll) {
+function calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_of_6, hit_prob) {
     var wound_prob = success_chance(wound_stat, wound_mod);
 
     // Rerolls
@@ -638,7 +637,8 @@ function roll_40k() {
     graph(attacks, attack_title, 'attack');
 
     // Hits
-    var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob);
+    var hit_prob = success_chance(hit_stat, hit_mod);
+    var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob, hit_prob);
 
     // Wounds
     var wound_stat;
@@ -655,7 +655,7 @@ function roll_40k() {
     } else {
         wound_stat = 4;
     }
-    var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll);
+    var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_of_6, hit_prob);
     var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hit_of_6, hits, wound_of_6, damage_prob);
 
     // Saves
@@ -699,10 +699,11 @@ function roll_aos() {
     graph(attacks, attack_title, 'attack');
 
     // Hits
-    var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob);
+    var hit_prob = success_chance(hit_stat, hit_mod);
+    var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob, hit_prob);
 
     // Wounds
-    var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll);
+    var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_of_6, hit_prob);
     var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hit_of_6, hits, wound_of_6, damage_prob);
 
     // Saves
