@@ -112,22 +112,22 @@ function reroll(prob){
 
 // Shake off damage
 // Returns a prob array reflecting the chance to ignore wounds.
-function shake_damage(damage_prob, shake) {
+function shake_damage(damage_prob, fnp) {
     var results = [];
     results.length = damage_prob.length;
     results.fill(0.0);
     results[0] = damage_prob[0];
 
-    if (shake == '6' || shake == '56') {
-        // Most abilities shake off individual points of damage
-        var shake_prob;
-        if (shake == '6') {
-            // Single roll of 6
-            shake_prob = 1.0 / 6.0;
-        } else if (shake == '56') {
-            // Single roll of 5 or 6
-            shake_prob = 1.0 / 3.0;
+    if (fnp) {
+        // Ability to shake off individual points of damage
+        if (fnp < 2) {
+            fnp = 2;
         }
+        if (fnp > 7) {
+            fnp = 7;
+        }
+
+        var shake_prob = (7.0 - fnp) / 6.0;
 
         // Must work from left to right since we are moving results down.
         for(var d = 1; d < damage_prob.length; d++) {
@@ -142,28 +142,6 @@ function shake_damage(damage_prob, shake) {
                     results[d] -= delta;
                     results[d - n] += delta;
                 }
-            }
-        }
-    } else if (shake == 'quantum') {
-        // Quantum Shielding ignores all damage if a single die rolls
-        // under the damage amount.
-        
-        // Can't roll less than 1.
-        if (damage_prob.length > 1) {
-            results[1] = damage_prob[1];
-        }
-
-        // For damage values of 2 - 6, increasing chances of being negated.
-        for(var d = 2; d < damage_prob.length; d++) {
-            if (d > 6) {
-                // Damage > 6 should be impossible, but will always fail.
-                results[0] += damage_prob[d];
-            } else {
-                // Chance to negate depends on d
-                var negate_chance = (d - 1) / 6.0;
-
-                results[0] += damage_prob[d] * negate_chance;
-                results[d] = damage_prob[d] * (1 - negate_chance);
             }
         }
     } else {
@@ -248,7 +226,7 @@ function rolls_of_6_add_mortal(rolls, six_chance) {
     }
 }
 
-function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob, hit_prob) {
+function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob) {
     var hit_title;
     if (hit_prob.pass_chance == 1) {
         hit_title = 'auto-hit';
@@ -275,25 +253,31 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob, 
 
     // Apply probability filter
     var hits = filter_prob_array(attacks, hit_prob.pass_chance);
+    var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
+
+    // Hits of six mortal wound effects
+    // Apply these before generating extra hits in the case of both effects
+    if (hit_abilities['mortal']) {
+        // Note that this introduces a slight inaccuracy if a wound roll of 6 effect is also selected.
+        // These hits don't trigger wound rolls, and thus the effects may not be combined correctly.
+        hits = rolls_of_6_as_mortal(hits, hit_six_chance, damage_prob);
+    } else if (hit_abilities['+mortal']) {
+        rolls_of_6_add_mortal(hits, hit_six_chance);
+    }
 
     // Hit of six generates extra hits
-    var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
-    if (hit_of_6 == '2' || hit_of_6 == '1' || hit_of_6 == '1roll') {
+    if (hit_abilities['+hit'] || hit_abilities['+roll']) {
         // Probability of a six given that we hit.
         var bonus_hits = 0;
         var bonus_hit_prob = 0;
 
-        if (hit_of_6 == '2') {
-            hit_title += ', 6s do 3 hits';
-            bonus_hits = 2;
+        if (hit_abilities['+hit']) {
+            bonus_hits = hit_abilities['+hit'];
+            hit_title += ', 6s extra ' + bonus_hits + ' extra hit(s)';
             bonus_hit_prob = 1.0;
-        } else if (hit_of_6 == '1') {
-            hit_title += ', 6s do 2 hits';
-            bonus_hits = 1;
-            bonus_hit_prob = 1.0;
-        } else if (hit_of_6 == '1roll') {
-            hit_title += ', 6s add 1 hit roll';
-            bonus_hits = 1;
+        } else if (hit_abilities['+roll']) {
+            bonus_hits = hit_abilities['+roll'];
+            hit_title += ', 6s add ' + bonus_hits + ' hit roll(s)';
             bonus_hit_prob = hit_prob.pass_chance;
         }
 
@@ -325,12 +309,6 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob, 
                 }
             }
         }
-    } else if (hit_of_6 == 'mortal') {
-        // Note that this introduces a slight inaccuracy if a wound roll of 6 effect is also selected.
-        // These hits don't trigger wound rolls, and thus the effects may not be combined correctly.
-        hits = rolls_of_6_as_mortal(hits, hit_six_chance, damage_prob);
-    } else if (hit_of_6 == '+mortal') {
-        rolls_of_6_add_mortal(hits, hit_six_chance);
     }
 
     graph(hits, hit_title, 'hit');
@@ -338,7 +316,7 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob, 
     return hits;
 }
 
-function calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_of_6, hit_prob) {
+function calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_abilities, hit_prob) {
     var wound_prob = success_chance(wound_stat, wound_mod);
 
     // Rerolls
@@ -350,7 +328,7 @@ function calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_of_6, hit_prob
 
     // Auto-wound on roll of 6+
     // Only apply normal wound probability to lesser hits
-    if (hit_of_6 == 'autowound') {
+    if (hit_abilities['autowound']) {
         var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
         wound_prob.pass_chance = 1.0 * hit_six_chance + wound_prob.pass_chance * (1.0 - hit_six_chance);
         wound_prob.fail_chance = wound_prob.fail_chance * (1.0 - hit_six_chance);
@@ -361,7 +339,7 @@ function calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_of_6, hit_prob
     return wound_prob;
 }
 
-function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hit_of_6, hits, wound_of_6, damage_prob) {
+function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob) {
     var wound_title;
     if (wound_prob.pass_chance == 1) {
         wound_title = 'auto-wound';
@@ -383,9 +361,9 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hit_of_6, hi
     // Is a set of probability arrays keyed on the number of wounds.
     // Probability of a six given that we wound.
     var wound_six_chance = wound_prob.six_chance / wound_prob.pass_chance;
-    if (wound_of_6 == '+mortal') {
+    if (wound_abilities['+mortal']) {
         rolls_of_6_add_mortal(wounds, wound_six_chance);
-    } else if (wound_of_6 == 'mortal') {
+    } else if (wound_abilities['mortal']) {
         wounds = rolls_of_6_as_mortal(wounds, wound_six_chance, damage_prob);
     } else {
         for (var w = 0; w < wounds.normal.length; w++) {
@@ -400,7 +378,7 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hit_of_6, hi
     return wounds;
 }
 
-function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, wound_of_6, wounds, wound_prob) {
+function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, wound_abilities, wounds, wound_prob) {
     // Always treat AP as negative
     ap_val = -Math.abs(ap_val);
     if (isNaN(save_mod)) {
@@ -459,14 +437,14 @@ function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, 
         invuln_prob = reroll_1(invuln_prob);
     }
 
-    // wounds of 6 get -1 additional AP
-    if (wound_of_6 == '-1' || wound_of_6 == '-3' || wound_of_6 == '-4') {
+    // wounds of 6 get additional AP
+    if (wound_abilities['pierce']) {
         // Probability of a six given that we wound.
         var wound_six_chance = wound_prob.six_chance / wound_prob.pass_chance;
-        var ap_mod = parseInt(wound_of_6, 10);
+        var ap_mod = parseInt(wound_abilities['pierce'], 10);
 
         // calculate save chance with modified AP.
-        var ap_save_prob = success_chance(save_stat, total_save_mod + ap_mod);
+        var ap_save_prob = success_chance(save_stat, total_save_mod - ap_mod);
         if (save_reroll == 'fail') {
             ap_save_prob = reroll(ap_save_prob);
         } else if (save_reroll == '1') {
@@ -507,22 +485,16 @@ function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, 
     return unsaved;
 }
 
-function do_damage(damage_val, shake, damage_prob, unsaved) {
+function do_damage(damage_val, fnp, damage_prob, unsaved) {
     var damage_title = damage_val + ' damage';
-    if (shake) {
-        if (shake == '6') {
-            damage_title += ' (shake on 6)';
-        } else if (shake == '56') {
-            damage_title += ' (shake on 5,6)';
-        } else if (shake == 'quantum') {
-            damage_title += ' (quantum shield)';
-        }
+    if (fnp) {
+        damage_title += ' (shake on ' + fnp + '+)';
     }
 
-    damage_prob = shake_damage(damage_prob, shake);
+    damage_prob = shake_damage(damage_prob, fnp);
 
     // Change of a mortal wound going through.
-    var mortal_damage_chance = shake_damage([0, 1], shake)[1];
+    var mortal_damage_chance = shake_damage([0, 1], fnp)[1];
 
     var damage = {'normal': []};
     // Apply damage based on how many hits there are.
@@ -553,11 +525,11 @@ function do_damage(damage_val, shake, damage_prob, unsaved) {
     return damage;
 }
 
-function do_killed_40k(damage_prob, shake, unsaved, wound_val) {
+function do_killed_40k(damage_prob, fnp, unsaved, wound_val) {
     var killed = {'normal': []};
     var killed_title = 'models killed';
-    damage_prob = shake_damage(damage_prob, shake);
-    var mortal_damage_chance = shake_damage([0, 1], shake)[1];
+    damage_prob = shake_damage(damage_prob, fnp);
+    var mortal_damage_chance = shake_damage([0, 1], fnp)[1];
     if (wound_val) {
         for(var n = 0; n < unsaved.normal.length; n++) {
             // Generate killed array for this many impacts.
@@ -612,12 +584,14 @@ function roll_40k() {
     var hit_stat = fetch_int_value('bs');
     var hit_mod = fetch_int_value('hit_mod');
     var hit_reroll = fetch_value('hit_reroll');
-    var hit_of_6 = fetch_value('hit_of_6');
+    var hit_leth = is_checked('hit_leth');
+    var hit_sus = fetch_int_value('hit_sus');
     var s = fetch_int_value('s');
     var t = fetch_int_value('t');
     var wound_mod = fetch_int_value('wound_mod');
     var wound_reroll = fetch_value('wound_reroll');
-    var wound_of_6 = fetch_value('wound_of_6');
+    var wound_dev = is_checked('wound_dev');
+    var wound_crit = fetch_int_value('wound_crit');
     var save_stat = fetch_int_value('save');
     var invuln_stat = fetch_int_value('invulnerable');
     var ap_val = fetch_int_value('ap');
@@ -626,7 +600,7 @@ function roll_40k() {
     var save_reroll = fetch_value('save_reroll');
     var damage_val = fetch_value('d');
     var wound_val = fetch_int_value('wounds');
-    var shake = fetch_value('shake');
+    var fnp = fetch_int_value('fnp');
 
     var damage_prob = dice_sum_prob_array(damage_val).normal;
 
@@ -638,7 +612,11 @@ function roll_40k() {
 
     // Hits
     var hit_prob = success_chance(hit_stat, hit_mod);
-    var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob, hit_prob);
+    var hit_abilities = {
+        '+hit': hit_sus,
+        'mortal': hit_leth
+    };
+    var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
 
     // Wounds
     var wound_stat;
@@ -655,17 +633,20 @@ function roll_40k() {
     } else {
         wound_stat = 4;
     }
-    var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_of_6, hit_prob);
-    var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hit_of_6, hits, wound_of_6, damage_prob);
+    var wound_abilities = {
+        'mortal': wound_dev
+    }
+    var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_abilities, hit_prob);
+    var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
 
     // Saves
-    var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, wound_of_6, wounds, wound_prob);
+    var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, wound_abilities, wounds, wound_prob);
 
     // Damage
-    var damage = do_damage(damage_val, shake, damage_prob, unsaved);
+    var damage = do_damage(damage_val, fnp, damage_prob, unsaved);
 
     // Models Killed
-    var killed = do_killed_40k(damage_prob, shake, unsaved, wound_val);
+    var killed = do_killed_40k(damage_prob, fnp, unsaved, wound_val);
 
     generate_permalink_40k();
 }
@@ -700,17 +681,44 @@ function roll_aos() {
 
     // Hits
     var hit_prob = success_chance(hit_stat, hit_mod);
-    var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_of_6, damage_prob, hit_prob);
+    var hit_abilities = {};
+    if (hit_of_6 == '1') {
+        hit_abilities['+hit'] = 1;
+    } else if (hit_of_6 == '2') {
+        hit_abilities['+hit'] = 2;
+    } else if (hit_of_6 == '1roll') {
+        hit_abilities['+roll'] = 1;
+    }
+    hit_abilities['autowound'] = (hit_of_6 == 'autowound');
+    hit_abilities['+mortal'] = (hit_of_6 == '+mortal');
+    hit_abilities['mortal'] = (hit_of_6 == 'mortal');
+    var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
 
     // Wounds
-    var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_of_6, hit_prob);
-    var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hit_of_6, hits, wound_of_6, damage_prob);
+    var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_abilities, hit_prob);
+    var wound_abilities = {};
+    if (wound_of_6 == '-1') {
+        wound_abilities['pierce'] = 1;
+    } else if (wound_of_6 == '-3') {
+        wound_abilities['pierce'] = 3;
+    } else if (wound_of_6 == '-4') {
+        wound_abilities['pierce'] = 4;
+    }
+    wound_abilities['+mortal'] = (wound_of_6 == '+mortal');
+    wound_abilities['mortal'] = (wound_of_6 == 'mortal');
+    var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
 
     // Saves
-    var unsaved = do_saves(save_stat, null, rend_val, save_mod, cover, save_reroll, wound_of_6, wounds, wound_prob);
+    var unsaved = do_saves(save_stat, null, rend_val, save_mod, cover, save_reroll, wound_abilities, wounds, wound_prob);
 
     // Damage
-    var damage = do_damage(damage_val, shake, damage_prob, unsaved);
+    var ward;
+    if (shake == "6") {
+        ward = 6;
+    } else if (shake == "56") {
+        ward = 5;
+    }
+    var damage = do_damage(damage_val, ward, damage_prob, unsaved);
 
     // Models Killed
     var killed = do_killed_aos(damage, wound_val);
@@ -1041,9 +1049,9 @@ var charts = [];
 
 
 // 40K Init
-var fields_40k = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'wound_mod', 'save_mod', 'invulnerable', 'wounds'];
-var checkboxes_40k = ['cover'];
-var selects_40k = ['hit_of_6', 'hit_reroll', 'wound_of_6', 'wound_reroll', 'save_reroll', 'shake'];
+var fields_40k = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'wound_mod', 'save_mod', 'invulnerable', 'wounds', 'hit_sus', 'wound_crit', 'fnp'];
+var checkboxes_40k = ['cover', 'hit_leth', 'wound_dev'];
+var selects_40k = ['hit_reroll', 'wound_reroll', 'save_reroll'];
 function init_40k() {
     charts['attack'] = init_chart('attack_chart', '{n} attacks: ', '>= {n} attacks: ', 'expected: {n} attacks');
     charts['hit'] = init_chart('hit_chart', '{n} hits: ', '>= {n} hits: ', 'expected: {n} hits');

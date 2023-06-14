@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>40K Visual Dice Calculator (8th Ed)</title>
+        <title>40K Visual Dice Calculator (10th Ed)</title>
         <link href="dice.css" rel="stylesheet" type="text/css">
         <script type="text/javascript" src="dice-TOKEN.js"></script>
         <script type="text/javascript" src="chart.js/dist/Chart.js"></script>
@@ -12,7 +12,7 @@
         <link rel="icon" type="image/png" href="http://ghostlords.com/favicon-16.png" sizes="16x16" />
     </head>
     <body onload="init_40k()">
-    <h1>40K Visual Dice Calculator (8th Ed)</h1>
+    <h1>40K Visual Dice Calculator (10th Ed)</h1>
     <p>Please also check out the version for <a href="/dice/aos.html">AoS</a></p>
 
     <div>
@@ -27,16 +27,10 @@
         <span class="description">Ex: 1, -2</span>
         </p>
         <p>
-        Hit rolls of 6:
-        <select id="hit_of_6">
-            <option value="">Do nothing special</option>
-            <option value="1roll">Generate 1 extra hit roll</option>
-            <option value="1">Generate 1 extra hit</option>
-            <option value="2">Generate 2 extra hits</option>
-            <option value="autowound">Automatically pass their wound roll</option>
-            <option value="+mortal">Deal 1 mortal wound in addition to regular damage</option>
-            <option value="mortal">Deal their damage as mortal wounds</option>
-        </select>
+        <label><input type="checkbox" id="hit_leth" value="1">Lethal Hits</label>
+        </p>
+        <p><label>Sustained Hits: <input type="text" id="hit_sus"></label>
+        <span class="description">Ex: 1, 2</span>
         </p>
         <p>
         Reroll: <select id="hit_reroll">
@@ -52,15 +46,10 @@
         <span class="description">Ex: 1, -2</span>
         </p>
         <p>
-        Wound rolls of 6:
-        <select id="wound_of_6">
-            <option value="">Do nothing special</option>
-            <option value="-1">Are resolved with -1 to AP</option>
-            <option value="-3">Are resolved with -3 to AP</option>
-            <option value="-4">Are resolved with -4 to AP</option>
-            <option value="+mortal">Deal 1 mortal wound in addition to regular damage</option>
-            <option value="mortal">Deal their damage as mortal wounds</option>
-        </select>
+        <label><input type="checkbox" id="wound_dev" value="1">Devastating Wounds</label>
+        </p>
+        <p><label>Critical Wound (Anti-X): <input type="text" id="wound_crit"></label>
+        <span class="description">Ex: 2, 4</span>
         </p>
         <p>
         Reroll: <select id="wound_reroll">
@@ -103,12 +92,9 @@
         <p><label>Wounds per model: <input type="text" id="wounds"></label>
         <span class="description">Ex: 1, 13, leave blank if you don't care</span>
         </p>
-        Shake off damage: <select id="shake">
-            <option value="">Never</option>
-            <option value="6">On a roll of 6</option>
-            <option value="56">On a roll of 5 or 6</option>
-            <option value="quantum">Roll under the damage value</option>
-        </select>
+        <p><label>Feel No Pain: <input type="text" id="fnp"></label>
+        <span class="description">Ex: 4, 6</span>
+        </p>
     </div>
     <p><button onclick="roll_40k()">Roll</button></p>
 
