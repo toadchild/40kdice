@@ -575,6 +575,7 @@ function roll_40k() {
     var hit_reroll = fetch_value('hit_reroll');
     var hit_leth = is_checked('hit_leth');
     var hit_sus = fetch_int_value('hit_sus');
+    var hit_of_6 = fetch_value('hit_of_6');
     var s = fetch_int_value('s');
     var t = fetch_int_value('t');
     var wound_mod = fetch_int_value('wound_mod');
@@ -605,6 +606,8 @@ function roll_40k() {
         '+hit': hit_sus,
         'autowound': hit_leth
     };
+    hit_abilities['+mortal'] = (hit_of_6 == '+mortal');
+    hit_abilities['mortal'] = (hit_of_6 == 'mortal');
     var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
 
     // Wounds
@@ -1072,7 +1075,7 @@ var charts = [];
 // 40K Init
 var fields_40k = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'wound_mod', 'save_mod', 'invulnerable', 'wounds', 'hit_sus', 'wound_crit', 'fnp'];
 var checkboxes_40k = ['cover', 'hit_leth', 'wound_dev'];
-var selects_40k = ['hit_reroll', 'wound_reroll', 'save_reroll'];
+var selects_40k = ['hit_of_6', 'hit_reroll', 'wound_reroll', 'save_reroll'];
 function init_40k() {
     charts['attack'] = init_chart('attack_chart', '{n} attacks: ', '>= {n} attacks: ', 'expected: {n} attacks');
     charts['hit'] = init_chart('hit_chart', '{n} hits: ', '>= {n} hits: ', 'expected: {n} hits');
