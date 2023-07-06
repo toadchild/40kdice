@@ -971,7 +971,7 @@ function log_prob_array(label, prob) {
         }
 
         if (Math.abs(prob.normal[w] - mortal_row_sum) > 0.0001) {
-            console.error('Mortal row probabilities do not sum to normal probability: ' + mortal_row_sum);
+            console.error('Mortal probabilities do not sum to normal probability: ' + mortal_row_sum);
         }
 
     }
