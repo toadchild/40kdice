@@ -603,8 +603,7 @@ function roll_40k() {
     var hit_prob = success_chance(hit_stat, hit_mod);
     var hit_abilities = {
         '+hit': hit_sus,
-        // XXX error this should be 'autowound'
-        'mortal': hit_leth
+        'autowound': hit_leth
     };
     var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
 
