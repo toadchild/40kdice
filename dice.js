@@ -153,7 +153,6 @@ function rolls_of_6_as_mortal(rolls, six_chance, damage_prob) {
         // Use binomial theorem to find out how likely it is to get n sixes on w dice.
         for (var n = 0; n <= w; n++) {
             var n_six_prob = prob(w, n, six_chance);
-            console.log('[' + w + '][' + n + '] Chance of ' + n + ' mortal(s): ' + n_six_prob);
 
             if (results.normal[w - n] == null) {
                 results.normal[w - n] = 0;
@@ -197,7 +196,6 @@ function rolls_of_6_add_mortal(rolls, six_chance) {
         // Use binomial theorem to find out how likely it is to get n sixes on w dice.
         for (var n = 0; n <= w; n++) {
             var n_six_prob = prob(w, n, six_chance);
-            console.log('[' + w + '][' + n + '] Chance of adding ' + n + ' mortal(s): ' + n_six_prob);
 
             for (var m = 0; m < rolls.mortal[w].length; m++) {
                 if (results.mortal[w][m + n] == null) {
@@ -285,11 +283,9 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
     // Hits of six mortal wound effects
     // Apply these independently of generating additional hits
     if (hit_abilities['mortal']) {
-        console.log('Mortals on hit rolls of 6');
         hits = rolls_of_6_as_mortal(hits, hit_six_chance, damage_prob);
         log_prob_array('Mortal Hits', hits);
     } else if (hit_abilities['+mortal']) {
-        console.log('Add mortals on hit rolls of 6');
         hits = rolls_of_6_add_mortal(hits, hit_six_chance);
         log_prob_array('+Mortal Hits', hits);
     }
@@ -365,11 +361,9 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_
     // Probability of a six given that we wound.
     var wound_six_chance = wound_prob.six_chance / wound_prob.pass_chance;
     if (wound_abilities['+mortal']) {
-        console.log('Add mortals on wound rolls of 6');
         wounds = rolls_of_6_add_mortal(wounds, wound_six_chance);
         log_prob_array('+Mortal Wounds', wounds);
     } else if (wound_abilities['mortal']) {
-        console.log('Mortals on wound rolls of 6');
         wounds = rolls_of_6_as_mortal(wounds, wound_six_chance, damage_prob);
         log_prob_array('Mortal Wounds', wounds);
     }
