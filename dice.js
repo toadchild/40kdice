@@ -154,60 +154,64 @@ function shake_damage(damage_prob, fnp) {
 
 function rolls_of_6_as_mortal(rolls, six_chance, damage_prob) {
     var raw_mortal_wounds = [];
-    var new_rolls = {'normal': [], 'mortal': []};
+    var results = {'normal': [], 'mortal': []};
 
     // Calculate base probability of a given number of mortal wounds.
     for (var w = 0; w < rolls.normal.length; w++) {
-        new_rolls.normal[w] = rolls.normal[w];
         // Wound of 6+ deals all damage as mortal wounds
         // Use binomial theorem to find out how likely it is to get n sixes on w dice.
-        for (var n = 1; n <= w; n++) {
+        for (var n = 0; n <= w; n++) {
             var n_six_prob = prob(w, n, six_chance);
 
-            // Remove regular rolls
-            var wound_delta = n_six_prob * rolls.normal[w];
-            new_rolls.normal[w] -= wound_delta;
-            new_rolls.normal[w - n] += wound_delta;
+            if (results.normal[n] == null) {
+                results.normal[n] = 0;
+                results.mortal[n] = [0];
+            }
+            results.normal[n] += rolls.normal[w] * n_six_prob;
 
-            // Add mortal wounds
+            // Any mortals that are here need to be distributed over the entire mortal distribution at the target
+            for (var m = 0; m < rolls.mortal[w].length; m++) {
+                if (results.mortal[n][m] == null) {
+                    results.mortal[n][m] = 0;
+                }
+                results.mortal[n][m] += rolls.mortal[w][m] * n_six_prob;
+            }
+
+            // Add new mortals targeting the column with reduced hits.
             if (raw_mortal_wounds[w - n] == null) {
-                raw_mortal_wounds[w - n] = [1];
+                raw_mortal_wounds[w - n] = [0];
             }
             var damage = roll_n_dice(n, damage_prob);
             for (var d = 1; d < damage.length; d++) {
                 if (raw_mortal_wounds[w - n][d] == null) {
                     raw_mortal_wounds[w - n][d] = 0;
                 }
-                var dam_delta = wound_delta * damage[d];
-                raw_mortal_wounds[w - n][0] -= dam_delta;
-                raw_mortal_wounds[w - n][d] += dam_delta;
+                raw_mortal_wounds[w - n][d] += rolls.normal[w] * n_six_prob * damage[d]; 
             }
         }
     }
 
-    // Deep copy mortal wound distribution from input.
-    for (var w = 0; w < rolls.mortal.length; w++) {
-        new_rolls.mortal[w] = [];
-        for (var m = 0; m < rolls.mortal[w].length; m++) {
-            new_rolls.mortal[w][m] = rolls.mortal[w][m];
-        }
-    }
+    log_prob_array("Hits Reduced", results);
 
-    // Apply mortal wounds, using the final values of the normal rolls to normalize.
+    // Apply mortal wounds we added above.
+    // Mortals are normalized by the normal wound probability.
     for (var w = 0; w < raw_mortal_wounds.length; w++) {
         for (var d = 1; d < raw_mortal_wounds[w].length; d++) {
-            if (new_rolls.mortal[w][d] == null) {
-                new_rolls.mortal[w][d] = 0;
-            }
-            if (raw_mortal_wounds[w][d]) {
-                var delta = raw_mortal_wounds[w][d] / new_rolls.normal[w];
-                new_rolls.mortal[w][0] -= delta;
-                new_rolls.mortal[w][d] += delta;
+            // Iterate from top of results.mortal because we're adding more to it.
+            for (var m = results.mortal[w].length - 1; m >= 0; m--) {
+                if (results.mortal[w][m + d] == null) {
+                    results.mortal[w][m + d] = 0;
+                }
+                if (raw_mortal_wounds[w][d]) {
+                    var delta = raw_mortal_wounds[w][d];
+                    results.mortal[w][m] -= delta;
+                    results.mortal[w][m + d] += delta;
+                }
             }
         }
     }
 
-    return new_rolls;
+    return results;
 }
 
 function rolls_of_6_add_mortal(rolls, six_chance) {
@@ -220,6 +224,7 @@ function rolls_of_6_add_mortal(rolls, six_chance) {
             if (rolls.mortal[w][n] == null) {
                 rolls.mortal[w][n] = 0;
             }
+            // XXX iterate over previous values, not always from 0
             rolls.mortal[w][n] += n_six_prob;
             rolls.mortal[w][0] -= n_six_prob;
         }
@@ -251,15 +256,18 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
         hit_prob = reroll_1(hit_prob);
     }
 
+    log_prob_array("Attacks", attacks);
+
     // Apply probability filter
     var hits = filter_prob_array(attacks, hit_prob.pass_chance);
+    log_prob_array("Hits", hits);
+    var base_hits = filter_prob_array(attacks, hit_prob.pass_chance);
     var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
 
     // Hits of six mortal wound effects
-    // Apply these before generating extra hits in the case of both effects
+    // Apply these independently of generating additional hits
     if (hit_abilities['mortal']) {
-        // Note that this introduces a slight inaccuracy if a wound roll of 6 effect is also selected.
-        // These hits don't trigger wound rolls, and thus the effects may not be combined correctly.
+        console.log("Mortals on hit rolls of 6");
         hits = rolls_of_6_as_mortal(hits, hit_six_chance, damage_prob);
     } else if (hit_abilities['+mortal']) {
         rolls_of_6_add_mortal(hits, hit_six_chance);
@@ -283,11 +291,12 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
 
         // Take hits from each column and move them to the right.
         // Have to start from the top, or we'll apply to hits we already shifted up.
+        // Use the base hit numbers before converting hits of 6 to mortals.
         // Also don't apply to misses.
-        for (var h = hits.normal.length - 1; h > 0; h--) {
-            if (hits.normal[h] > 0) {
+        for (var h = base_hits.normal.length - 1; h > 0; h--) {
+            if (base_hits.normal[h] > 0) {
                 // We may decrement this multiple times.  Need to keep the original reference.
-                var original_h_prob = hits.normal[h];
+                var original_h_prob = base_hits.normal[h];
 
                 // Use binomial theorem to find out how likely it is to get n sixes on h dice.
                 for (var n = 1; n <= h; n++) {
@@ -310,6 +319,10 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
             }
         }
     }
+
+    // Add in any mortal wounds caused by critical hits
+
+    log_prob_array("Final Hits", hits);
 
     graph(hits, hit_title, 'hit');
 
@@ -364,6 +377,7 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_
     if (wound_abilities['+mortal']) {
         rolls_of_6_add_mortal(wounds, wound_six_chance);
     } else if (wound_abilities['mortal']) {
+        console.log("Mortals on wound rolls of 6");
         wounds = rolls_of_6_as_mortal(wounds, wound_six_chance, damage_prob);
     } else {
         for (var w = 0; w < wounds.normal.length; w++) {
@@ -374,6 +388,8 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_
     }
 
     graph(wounds, wound_title, 'wound');
+
+    log_prob_array("Final Wounds", wounds);
 
     return wounds;
 }
@@ -515,7 +531,7 @@ function do_damage(damage_val, fnp, damage_prob, unsaved) {
                     if (damage.normal[dam] == null) {
                         damage.normal[dam] = 0;
                     }
-                    damage.normal[dam] += unsaved.normal[n] * hit_damage[d] * unsaved.mortal[n][m] * n_mortal_prob;
+                    damage.normal[dam] += hit_damage[d] * unsaved.mortal[n][m] * n_mortal_prob;
                 }
             }
         }
@@ -549,7 +565,7 @@ function do_killed_40k(damage_prob, fnp, unsaved, wound_val) {
                             if (killed.normal[kills] == null) {
                                 killed.normal[kills] = 0;
                             }
-                            killed.normal[kills] += unsaved.normal[n] * hit_killed[k][w] * unsaved.mortal[n][m] * n_mortal_prob;
+                            killed.normal[kills] += hit_killed[k][w] * unsaved.mortal[n][m] * n_mortal_prob;
                         }
                     }
                 }
@@ -614,6 +630,7 @@ function roll_40k() {
     var hit_prob = success_chance(hit_stat, hit_mod);
     var hit_abilities = {
         '+hit': hit_sus,
+        // XXX error this should be 'autowound'
         'mortal': hit_leth
     };
     var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
@@ -771,41 +788,25 @@ function prob(trials, successes, probability) {
 // specified probability of success.
 function filter_prob_array(input_probs, probability) {
     var results = {'normal': [], 'mortal': []};
-    for(var i = 0; i < input_probs.normal.length; i++) {
-        if (input_probs.normal[i] == null) {
-            input_probs.normal[i] = 0;
-        }
-        if (input_probs.mortal[i] == null) {
-            input_probs.mortal[i] = [1];
-        }
 
+    for(var i = 0; i < input_probs.normal.length; i++) {
         // merge into master list based on how likely this many trials were
         for(var r = 0; r <= i; r++) {
             var trial_result = prob(i, r, probability);
 
             if (results.normal[r] == null) {
                 results.normal[r] = 0;
-                results.mortal[r] = [];
+                results.mortal[r] = [0];
             }
             results.normal[r] += input_probs.normal[i] * trial_result;
 
+            // Any mortals that are here need to be distributed over the entire mortal distribution at the target
             for (var m = 0; m < input_probs.mortal[i].length; m++) {
                 if (results.mortal[r][m] == null) {
                     results.mortal[r][m] = 0;
                 }
-                results.mortal[r][m] += input_probs.mortal[i][m] * input_probs.normal[i] * trial_result;
+                results.mortal[r][m] += input_probs.mortal[i][m] * trial_result;
             }
-        }
-    }
-
-    // Renormalize the mortal wounds per category
-    for (var r = 0; r < results.mortal.length; r++) {
-        if (results.normal[r] != 0) {
-            for (var m = 0; m < results.mortal[r].length; m++) {
-                results.mortal[r][m] /= results.normal[r];
-            }
-        } else {
-            results.mortal[r] = [1];
         }
     }
 
@@ -820,8 +821,13 @@ function dice_sum_prob_array(value) {
     // No 'd', return constant probability.
     if (i == -1) {
         die_prob.normal.length = value;
-        die_prob.normal.fill(0);
+        die_prob.mortal.length = value;
+        for (var n = 0; n < die_prob.normal.length; n++) {
+            die_prob.normal[n] = 0;
+            die_prob.mortal[n] = [0];
+        }
         die_prob.normal[die_prob.normal.length] = 1;
+        die_prob.mortal[die_prob.mortal.length] = [1];
         return die_prob;
     }
     var n = parseInt(value.substring(0, i), 10);
@@ -840,6 +846,9 @@ function dice_sum_prob_array(value) {
     }
 
     die_prob.normal = roll_n_dice(n, die_faces);
+    for (var w = 0; w < die_prob.normal.length; w++) {
+        die_prob.mortal[w][0] = die_prob.normal[w];
+    }
     return die_prob;
 }
 
@@ -940,6 +949,44 @@ function roll_n_dice_against_threshold(n, die_prob, threshold) {
     return probs;
 }
 
+// Logging and validation
+function log_prob_array(label, prob) {
+    console.log('--- ' + label + ' ---');
+    if (prob.normal.length != prob.mortal.length) {
+        console.error('Mismatched lengths! ' + prob.normal.length + ' != ' + prob.mortal.length);
+    }
+
+    var normal_sum = 0.0;
+    var mortal_sum = 0.0;
+    for (var w = 0; w < prob.normal.length; w++) {
+
+        console.log(' ' + w + ' = ' + prob.normal[w]);
+        normal_sum += prob.normal[w];
+
+        var mortal_row_sum = 0.0;
+        for (var m = 0; m < prob.mortal[w].length; m++) {
+            console.log('   ' + w + ':' + m + ' = ' + prob.mortal[w][m]);
+            mortal_sum += prob.mortal[w][m];
+            mortal_row_sum += prob.mortal[w][m];
+        }
+
+        if (Math.abs(prob.normal[w] - mortal_row_sum) > 0.0001) {
+            console.error('Mortal row probabilities do not sum to normal probability: ' + mortal_row_sum);
+        }
+
+    }
+
+    if (Math.abs(1.0 - normal_sum) > 0.0001) {
+        console.error('Normal probabilities do not sum to 1.0: ' + normal_sum);
+    }
+
+    if (Math.abs(1.0 - mortal_sum) > 0.0001) {
+        console.error('Mortal probabilities do not sum to 1.0: ' + mortal_sum);
+    }
+
+    console.log('--------------');
+}
+
 // Returns a 2d array[i][j] where every index is = 0
 function array_2d(i, j) {
     var ret = [];
@@ -1000,7 +1047,7 @@ function graph(raw_data, title, chart_name) {
                 if (mortal[m] == null) {
                     mortal[m] = 0.0;
                 }
-                mortal[m] += raw_data.normal[l] * raw_data.mortal[l][m];
+                mortal[m] += raw_data.mortal[l][m];
             }
         }
     }
