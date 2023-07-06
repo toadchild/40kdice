@@ -310,6 +310,10 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
         log_prob_array('Sustained Hits', hits);
     }
 
+    if (hit_abilities['autowound']) {
+        hit_title += ', 6s autowound';
+    }
+
     graph(hits, hit_title, 'hit');
 
     return hits;
