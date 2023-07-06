@@ -1005,7 +1005,7 @@ function expected_value(data) {
 
 function graph(raw_data, title, chart_name) {
     var labels = [];
-    var cumulative_data = [];
+    var cumulative_data = [{x: 0, y: 100}];
     var cumulative = 100.0;
     var data = [];
     var mortal = [];
@@ -1022,8 +1022,8 @@ function graph(raw_data, title, chart_name) {
 
         data[l] = clean;
         labels[l] = l;
-        if (l == 0 || clean) {
-            cumulative_data.push({x: l, y: Math.round(cumulative * 10) / 10.0});
+        if (clean) {
+            cumulative_data.push({x: l + 0.5, y: Math.round(cumulative * 10) / 10.0});
         }
 
         // Decrement cumulative probability.
@@ -1285,7 +1285,7 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
                             // Expected value
                             return chart.datasets[item.datasetIndex].label.replace('{n}', item.xLabel);
                         } else {
-                            return chart.datasets[item.datasetIndex].label.replace('{n}', item.xLabel) + item.yLabel + '%';
+                            return chart.datasets[item.datasetIndex].label.replace('{n}', Math.floor(item.xLabel)) + item.yLabel + '%';
                         }
                     }
                 }
