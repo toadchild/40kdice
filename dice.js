@@ -223,6 +223,42 @@ function rolls_of_6_add_mortal(rolls, six_chance) {
     return results;
 }
 
+function hits_of_6_add_hits(hits, bonus_hits, bonus_hit_prob, hit_six_chance) {
+    var results = {'normal': [], 'mortal': []};
+
+    // Take hits from each column and move them to the right.
+    for (var h = 0; h < hits.normal.length; h++) {
+        if (results.normal[h] == null) {
+            results.normal[h] = 0;
+            results.mortal[h] = [0];
+        }
+
+        // Use binomial theorem to find out how likely it is to get n sixes on h dice.
+        for (var n = 0; n <= h; n++) {
+            var n_six_hit_prob = prob(h, n, hit_six_chance);
+
+            // Binomial again to see how many of the bonus hits hit.
+            for (var b = 0; b <= bonus_hits * n; b++) {
+                if (results.normal[h + b] == null) {
+                    results.normal[h + b] = 0;
+                    results.mortal[h + b] = [0];
+                }
+
+                var b_prob = prob(bonus_hits * n, b, bonus_hit_prob);
+                var six_delta = hits.normal[h] * n_six_hit_prob * b_prob;
+                results.normal[h + b] += six_delta;
+
+                if (results.mortal[h + b][0] == null) {
+                    results.mortal[h + b][0] = 0;
+                }
+                // XXX is this 0?
+                results.mortal[h + b][0] += six_delta;
+            }
+        }
+    }
+    return results;
+}
+
 function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob) {
     var hit_title;
     if (hit_prob.pass_chance == 1) {
@@ -252,7 +288,6 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
 
     // Apply probability filter
     var hits = filter_prob_array(attacks, hit_prob.pass_chance);
-    var base_hits = filter_prob_array(attacks, hit_prob.pass_chance);
     var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
     log_prob_array('Hits', hits);
 
@@ -274,7 +309,7 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
 
         if (hit_abilities['+hit']) {
             bonus_hits = hit_abilities['+hit'];
-            hit_title += ', 6s extra ' + bonus_hits + ' extra hit(s)';
+            hit_title += ', 6s add ' + bonus_hits + ' extra hit(s)';
             bonus_hit_prob = 1.0;
         } else if (hit_abilities['+roll']) {
             bonus_hits = hit_abilities['+roll'];
@@ -282,38 +317,10 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
             bonus_hit_prob = hit_prob.pass_chance;
         }
 
-        // Take hits from each column and move them to the right.
-        // Have to start from the top, or we'll apply to hits we already shifted up.
-        // Use the base hit numbers before converting hits of 6 to mortals.
-        // Also don't apply to misses.
-        for (var h = base_hits.normal.length - 1; h > 0; h--) {
-            if (base_hits.normal[h] > 0) {
-                // We may decrement this multiple times.  Need to keep the original reference.
-                var original_h_prob = base_hits.normal[h];
-
-                // Use binomial theorem to find out how likely it is to get n sixes on h dice.
-                for (var n = 1; n <= h; n++) {
-                    var n_six_hit_prob = prob(h, n, hit_six_chance);
-
-                    // Binomial again to see how many of the bonus hits hit.
-                    for (var b = 1; b <= bonus_hits * n; b++) {
-                        var b_prob = prob(bonus_hits * n, b, bonus_hit_prob);
-                        if (b_prob) {
-                            var target = h + b;
-                            var six_delta = original_h_prob * n_six_hit_prob * b_prob;
-                            hits.normal[h] -= six_delta;
-                            if (hits.normal[target] == null) {
-                                hits.normal[target] = 0;
-                            }
-                            hits.normal[target] += six_delta;
-                        }
-                    }
-                }
-            }
-        }
+        hits = hits_of_6_add_hits(hits, bonus_hits, bonus_hit_prob, hit_six_chance);
     }
 
-    // Add in any mortal wounds caused by critical hits
+    // XXX Add in any mortal wounds caused by critical hits
 
     log_prob_array('Final Hits', hits);
 
@@ -971,7 +978,7 @@ function log_prob_array(label, prob) {
         }
 
         if (Math.abs(prob.normal[w] - mortal_row_sum) > 0.0001) {
-            console.error('Mortal probabilities do not sum to normal probability: ' + mortal_row_sum);
+            console.error('Mortal probabilities do not sum to normal probability: ' + mortal_row_sum + ' != ' + prob.normal[w]);
         }
 
     }
