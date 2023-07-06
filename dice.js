@@ -289,16 +289,18 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
     // Apply probability filter
     var hits = filter_prob_array(attacks, hit_prob.pass_chance);
     var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
-    log_prob_array('Hits', hits);
+    log_prob_array('Base Hits', hits);
 
     // Hits of six mortal wound effects
     // Apply these independently of generating additional hits
     if (hit_abilities['mortal']) {
         console.log('Mortals on hit rolls of 6');
         hits = rolls_of_6_as_mortal(hits, hit_six_chance, damage_prob);
+        log_prob_array('Mortal Hits', hits);
     } else if (hit_abilities['+mortal']) {
         console.log('Add mortals on hit rolls of 6');
         hits = rolls_of_6_add_mortal(hits, hit_six_chance);
+        log_prob_array('+Mortal Hits', hits);
     }
 
     // Hit of six generates extra hits
@@ -318,11 +320,8 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
         }
 
         hits = hits_of_6_add_hits(hits, bonus_hits, bonus_hit_prob, hit_six_chance);
+        log_prob_array('Sustained Hits', hits);
     }
-
-    // XXX Add in any mortal wounds caused by critical hits
-
-    log_prob_array('Final Hits', hits);
 
     graph(hits, hit_title, 'hit');
 
@@ -378,12 +377,12 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_
     if (wound_abilities['+mortal']) {
         console.log('Add mortals on wound rolls of 6');
         wounds = rolls_of_6_add_mortal(wounds, wound_six_chance);
+        log_prob_array('+Mortal Wounds', wounds);
     } else if (wound_abilities['mortal']) {
         console.log('Mortals on wound rolls of 6');
         wounds = rolls_of_6_as_mortal(wounds, wound_six_chance, damage_prob);
+        log_prob_array('Mortal Wounds', wounds);
     }
-
-    log_prob_array('Final Wounds', wounds);
 
     graph(wounds, wound_title, 'wound');
 
