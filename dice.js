@@ -25,7 +25,6 @@ function success_chance(stat, modifier) {
     if (isNaN(stat)) {
         ret.pass_chance = 1.0;
         ret.fail_chance = 0.0;
-        ret.natural_fail_chance = 0.0;
         ret.six_chance = 0.0;
         return ret;
     }
@@ -64,21 +63,14 @@ function success_chance(stat, modifier) {
     // passes due to positive modifiers.
 
     if (modifier > 0) {
-        // Rerolls are optional, so only reroll things that will really fail.
-        ret.natural_fail_chance = 1.0 - (7 - modded_stat) / 6.0;
-
         // Positive modifiers increase 6+ range.
         // Smallest die roll that counts as a result of 6 or more.
         var six_threshold = Math.max(modded_stat, 6 - modifier);
         ret.six_chance = (7 - six_threshold) / 6.0;
     } else if (modifier < 0) {
-        // Unmodified fail chance.
-        ret.natural_fail_chance = 1.0 - (7 - stat) / 6.0;
-
         // negative modifiers eliminate results of 6+.
         ret.six_chance = 0.0;
     } else {
-        ret.natural_fail_chance = ret.fail_chance;
         ret.six_chance = 1.0 / 6.0;
     }
 
@@ -103,9 +95,9 @@ function reroll_1(prob){
 function reroll(prob){
     var ret = {};
 
-    ret.pass_chance = prob.pass_chance + prob.natural_fail_chance * prob.pass_chance;
+    ret.pass_chance = prob.pass_chance + prob.fail_chance * prob.pass_chance;
     ret.fail_chance = 1.0 - ret.pass_chance;
-    ret.six_chance = prob.six_chance + prob.natural_fail_chance * prob.six_chance;
+    ret.six_chance = prob.six_chance + prob.fail_chance * prob.six_chance;
 
     return ret;
 }
@@ -251,7 +243,6 @@ function hits_of_6_add_hits(hits, bonus_hits, bonus_hit_prob, hit_six_chance) {
                 if (results.mortal[h + b][0] == null) {
                     results.mortal[h + b][0] = 0;
                 }
-                // XXX is this 0?
                 results.mortal[h + b][0] += six_delta;
             }
         }
@@ -344,7 +335,6 @@ function calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_abilities, hit
         var hit_six_chance = hit_prob.six_chance / hit_prob.pass_chance;
         wound_prob.pass_chance = 1.0 * hit_six_chance + wound_prob.pass_chance * (1.0 - hit_six_chance);
         wound_prob.fail_chance = wound_prob.fail_chance * (1.0 - hit_six_chance);
-        wound_prob.natural_fail_chance = wound_prob.natural_fail_chance * (1.0 - hit_six_chance);
         wound_prob.six_chance = wound_prob.six_chance * (1.0 - hit_six_chance);
     }
 
