@@ -193,20 +193,34 @@ function rolls_of_6_as_mortal(rolls, six_chance, damage_prob) {
 }
 
 function rolls_of_6_add_mortal(rolls, six_chance) {
+    var results = {'normal': [], 'mortal': []};
+
     for (var w = 0; w < rolls.normal.length; w++) {
+        results.normal[w] = rolls.normal[w];
+        results.mortal[w] = [];
+        results.mortal[w].length = rolls.mortal.length;
+        results.mortal[w].fill(0);
+
         // Roll of 6+ deals 1 mortal wound in addition to normal wounds
         // Use binomial theorem to find out how likely it is to get n sixes on w dice.
         for (var n = 0; n <= w; n++) {
             var n_six_prob = prob(w, n, six_chance);
+            console.log('[' + w + '][' + n + '] Chance of adding ' + n + ' mortal(s): ' + n_six_prob);
 
-            if (rolls.mortal[w][n] == null) {
-                rolls.mortal[w][n] = 0;
+            for (var m = 0; m < rolls.mortal[w].length; m++) {
+                if (results.mortal[w][m + n] == null) {
+                    results.mortal[w][m + n] = 0;
+                }
+
+                results.mortal[w][m] += rolls.mortal[w][m] * n_six_prob;
+
+                // Add additional mortals
+                results.mortal[w][m] -= rolls.mortal[w][m] * n_six_prob;
+                results.mortal[w][m + n] += rolls.mortal[w][m] * n_six_prob;
             }
-            // XXX iterate over previous values, not always from 0
-            rolls.mortal[w][n] += n_six_prob;
-            rolls.mortal[w][0] -= n_six_prob;
         }
     }
+    return results;
 }
 
 function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob) {
@@ -248,7 +262,8 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
         console.log('Mortals on hit rolls of 6');
         hits = rolls_of_6_as_mortal(hits, hit_six_chance, damage_prob);
     } else if (hit_abilities['+mortal']) {
-        rolls_of_6_add_mortal(hits, hit_six_chance);
+        console.log('Add mortals on hit rolls of 6');
+        hits = rolls_of_6_add_mortal(hits, hit_six_chance);
     }
 
     // Hit of six generates extra hits
@@ -354,7 +369,8 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_
     // Probability of a six given that we wound.
     var wound_six_chance = wound_prob.six_chance / wound_prob.pass_chance;
     if (wound_abilities['+mortal']) {
-        rolls_of_6_add_mortal(wounds, wound_six_chance);
+        console.log('Add mortals on wound rolls of 6');
+        wounds = rolls_of_6_add_mortal(wounds, wound_six_chance);
     } else if (wound_abilities['mortal']) {
         console.log('Mortals on wound rolls of 6');
         wounds = rolls_of_6_as_mortal(wounds, wound_six_chance, damage_prob);
@@ -582,6 +598,7 @@ function roll_40k() {
     var wound_reroll = fetch_value('wound_reroll');
     var wound_dev = is_checked('wound_dev');
     var wound_crit = fetch_int_value('wound_crit');
+    var wound_of_6 = fetch_value('wound_of_6');
     var save_stat = fetch_int_value('save');
     var invuln_stat = fetch_int_value('invulnerable');
     var ap_val = fetch_int_value('ap');
@@ -604,10 +621,10 @@ function roll_40k() {
     var hit_prob = success_chance(hit_stat, hit_mod);
     var hit_abilities = {
         '+hit': hit_sus,
-        'autowound': hit_leth
+        'autowound': hit_leth,
+        '+mortal': (hit_of_6 == '+mortal'),
+        'mortal': (hit_of_6 == 'mortal')
     };
-    hit_abilities['+mortal'] = (hit_of_6 == '+mortal');
-    hit_abilities['mortal'] = (hit_of_6 == 'mortal');
     var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
 
     // Wounds
@@ -626,8 +643,9 @@ function roll_40k() {
         wound_stat = 4;
     }
     var wound_abilities = {
-        'mortal': wound_dev
-    }
+        'mortal': wound_dev,
+        '+mortal': (wound_of_6 == '+mortal')
+    };
     var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_abilities, hit_prob);
     var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
 
@@ -936,13 +954,18 @@ function log_prob_array(label, prob) {
     var normal_sum = 0.0;
     var mortal_sum = 0.0;
     for (var w = 0; w < prob.normal.length; w++) {
-
         console.log(' ' + w + ' = ' + prob.normal[w]);
+        if (prob.normal[w] < 0) {
+            console.error('Negative probability!');
+        }
         normal_sum += prob.normal[w];
 
         var mortal_row_sum = 0.0;
         for (var m = 0; m < prob.mortal[w].length; m++) {
             console.log('   ' + w + ':' + m + ' = ' + prob.mortal[w][m]);
+            if (prob.mortal[w][m] < 0) {
+                console.error('Negative probability!');
+            }
             mortal_sum += prob.mortal[w][m];
             mortal_row_sum += prob.mortal[w][m];
         }
@@ -1075,7 +1098,7 @@ var charts = [];
 // 40K Init
 var fields_40k = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'wound_mod', 'save_mod', 'invulnerable', 'wounds', 'hit_sus', 'wound_crit', 'fnp'];
 var checkboxes_40k = ['cover', 'hit_leth', 'wound_dev'];
-var selects_40k = ['hit_of_6', 'hit_reroll', 'wound_reroll', 'save_reroll'];
+var selects_40k = ['hit_of_6', 'hit_reroll', 'wound_of_6', 'wound_reroll', 'save_reroll'];
 function init_40k() {
     charts['attack'] = init_chart('attack_chart', '{n} attacks: ', '>= {n} attacks: ', 'expected: {n} attacks');
     charts['hit'] = init_chart('hit_chart', '{n} hits: ', '>= {n} hits: ', 'expected: {n} hits');
