@@ -161,7 +161,7 @@ function qunit_test() {
         assert.deepEqual(wounds, expected, "wounds");
     });
 
-    QUnit.module('Full 40K');
+    QUnit.module('Full Stack');
 
     QUnit.test('6 attacks, mortals on hits and wounds', function(assert) {
         var hit_stat = 4;
@@ -383,9 +383,9 @@ function qunit_test() {
         };
         assert.deepEqual(damage, expected_damage, "damage");
 
-        // Models Killed
-        var killed = do_killed_40k(damage_prob, fnp, unsaved, wound_val);
-        var expected_killed = {
+        // Models Killed (40K)
+        var killed_40k = do_killed_40k(damage_prob, fnp, unsaved, wound_val);
+        var expected_killed_40k = {
             "normal": [
                 0.1915757707012368,
                 0.36446122230967,
@@ -396,7 +396,22 @@ function qunit_test() {
                 0.00019466933930022476
             ]
         };
-        assert.deepEqual(killed, expected_killed, "killed");
+        assert.deepEqual(killed_40k, expected_killed_40k, "killed 40k");
+
+        // Models Killed (AOS)
+        var killed_aos = do_killed_aos(damage, wound_val);
+        var expected_killed_aos = {
+            "normal": [
+                0.1915757707012368,
+                0.36446122230967,
+                0.2889021884162018,
+                0.12213751054993896,
+                0.02904489580150987,
+                0.003683742882142715,
+                0.00019466933930022476
+            ]
+        };
+        assert.deepEqual(killed_aos, expected_killed_aos, "killed aos");
     });
 }
 
