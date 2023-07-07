@@ -1004,6 +1004,11 @@ function expected_value(data) {
 }
 
 function graph(raw_data, title, chart_name) {
+    // Don't graph in unit tests.
+    if (TEST_OVERRIDE) {
+        return;
+    }
+
     var labels = [];
     var cumulative_data = [{x: 0, y: 100}];
     var cumulative = 100.0;
@@ -1302,3 +1307,5 @@ const DATASET_EXPECTED = 3;
 
 const AXIS_LABELS = 0;
 const AXIS_LINEAR = 1;
+
+var TEST_OVERRIDE = false;
