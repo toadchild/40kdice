@@ -836,7 +836,7 @@ function dice_sum_prob_array(value) {
 
     die_prob.normal = roll_n_dice(n, die_faces);
     for (var w = 0; w < die_prob.normal.length; w++) {
-        die_prob.mortal[w][0] = die_prob.normal[w];
+        die_prob.mortal[w] = [die_prob.normal[w]];
     }
     return die_prob;
 }
