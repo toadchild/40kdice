@@ -160,21 +160,19 @@ function rolls_of_6_as_mortal(rolls, six_chance, damage_prob) {
             }
             results.normal[w - n] += rolls.normal[w] * n_six_prob;
 
+            var damage = roll_n_dice(n, damage_prob);
             for (var m = 0; m < rolls.mortal[w].length; m++) {
                 if (results.mortal[w - n][m] == null) {
                     results.mortal[w - n][m] = 0;
                 }
-                // Distribute existing mortals across the target column.
-                results.mortal[w - n][m] += rolls.mortal[w][m] * n_six_prob;
 
-                // Add new mortals targeting the column with reduced hits.
-                var damage = roll_n_dice(n, damage_prob);
-                for (var d = 1; d < damage.length; d++) {
+                // Distribute existing mortals with new damage.
+                for (var d = 0; d < damage.length; d++) {
                     if (results.mortal[w - n][m + d] == null) {
                         results.mortal[w - n][m + d] = 0;
                     }
-                    results.mortal[w - n][m] -= rolls.normal[w] * n_six_prob * damage[d];
-                    results.mortal[w - n][m + d] += rolls.normal[w] * n_six_prob * damage[d];
+
+                    results.mortal[w - n][m + d] += rolls.mortal[w][m] * n_six_prob * damage[d];
                 }
             }
         }
