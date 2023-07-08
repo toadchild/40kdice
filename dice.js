@@ -1050,7 +1050,6 @@ function graph(raw_data, title, chart_name) {
     }
 
     // Turn mortal count into percentage points
-    //chart.options.scales.xAxes[AXIS_LABELS].categoryPercentage = 1.6
     if (mortal.length <= 1) {
         mortal = [];
     } else {
@@ -1084,8 +1083,8 @@ function graph(raw_data, title, chart_name) {
     chart.data.datasets[DATASET_CUMULATIVE].data = cumulative_data;
     chart.data.datasets[DATASET_EXPECTED].data = ev_points;
     chart.data.labels = labels;
-    chart.options.title.text = title;
-    chart.options.scales.xAxes[AXIS_LINEAR].ticks.max = data.length;
+    chart.options.plugins.title.text = title;
+    chart.options.scales['linear'].max = data.length;
     chart.update();
 }
 
@@ -1232,6 +1231,7 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
                     borderColor: 'rgba(0, 128, 128, 0.4)',
                     backgroundColor: 'rgba(0, 128, 128, 0.2)',
                     pointBackgroundColor: 'rgba(0, 128, 128, 0.4)',
+                    fill: 'origin',
                     data: [],
                     type: 'line',
                     cubicInterpolationMode: 'monotone'
@@ -1248,47 +1248,46 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
         },
         options: {
             scales: {
-                yAxes: [{
+                labels: {
+                    axis: 'x',
+                    type: 'linear',
+                    min: 0,
+                    offset: true,
                     ticks: {
-                        beginAtZero: true,
-                        min: 0
+                        stepSize: 1
                     }
-                }],
-                xAxes: [
-                    {
-                        id: 'labels',
-                        ticks: {
-                            maxRotation: 0
+                },
+                linear: {
+                    axis: 'x',
+                    type: 'linear',
+                    min: 0,
+                    offset: false,
+                    display: false
+                },
+                y: {
+                    suggestedMax: 100,
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                title: {
+                    display: true
+                },
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(item) {
+                            return '';
                         },
-                        stacked: true
-                    },
-                    {
-                        id: 'linear',
-                        type: 'linear',
-                        display: false,
-                        ticks: {
-                            min: 0
-                        }
-                    }
-                ]
-            },
-            title: {
-                display: true
-            },
-            legend: {
-                display: false
-            },
-            tooltips: {
-                callbacks: {
-                    title: function(itemArray, chart) {
-                        return '';
-                    },
-                    label: function(item, chart) {
-                        if (item.datasetIndex == DATASET_EXPECTED) {
-                            // Expected value
-                            return chart.datasets[item.datasetIndex].label.replace('{n}', item.xLabel);
-                        } else {
-                            return chart.datasets[item.datasetIndex].label.replace('{n}', Math.floor(item.xLabel)) + item.yLabel + '%';
+                        label: function(item) {
+                            if (item.datasetIndex == DATASET_EXPECTED) {
+                                // Expected value
+                                return item.dataset.label.replace('{n}', item.parsed.x);
+                            } else {
+                                return item.dataset.label.replace('{n}', Math.floor(item.parsed.x)) + item.parsed.y + '%';
+                            }
                         }
                     }
                 }
@@ -1302,8 +1301,5 @@ const DATASET_PRIMARY = 0;
 const DATASET_MORTAL = 1;
 const DATASET_CUMULATIVE = 2;
 const DATASET_EXPECTED = 3;
-
-const AXIS_LABELS = 0;
-const AXIS_LINEAR = 1;
 
 var TEST_OVERRIDE = false;
