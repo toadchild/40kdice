@@ -282,9 +282,11 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
     // Apply these independently of generating additional hits
     if (hit_abilities['mortal']) {
         hits = rolls_of_6_as_mortal(hits, hit_six_chance, damage_prob);
+        hit_title += ', 6s deal mortals';
         log_prob_array('Mortal Hits', hits);
     } else if (hit_abilities['+mortal']) {
         hits = rolls_of_6_add_mortal(hits, hit_six_chance);
+        hit_title += ', 6s add 1 mortal';
         log_prob_array('+Mortal Hits', hits);
     }
 
@@ -364,9 +366,11 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_
     var wound_six_chance = wound_prob.six_chance / wound_prob.pass_chance;
     if (wound_abilities['+mortal']) {
         wounds = rolls_of_6_add_mortal(wounds, wound_six_chance);
+        wound_title += ', 6s deal mortals';
         log_prob_array('+Mortal Wounds', wounds);
     } else if (wound_abilities['mortal']) {
         wounds = rolls_of_6_as_mortal(wounds, wound_six_chance, damage_prob);
+        wound_title += ', 6s add 1 mortal';
         log_prob_array('Mortal Wounds', wounds);
     }
 
