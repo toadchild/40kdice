@@ -1080,11 +1080,13 @@ function graph(raw_data, title, chart_name) {
 
     chart.data.datasets[DATASET_PRIMARY].data = data;
     chart.data.datasets[DATASET_MORTAL].data = mortal;
+    chart.data.datasets[DATASET_MORTAL].grouped = mortal.length > 0;
     chart.data.datasets[DATASET_CUMULATIVE].data = cumulative_data;
     chart.data.datasets[DATASET_EXPECTED].data = ev_points;
     chart.data.labels = labels;
     chart.options.plugins.title.text = title;
     chart.options.scales['linear'].max = data.length;
+
     chart.update();
 }
 
@@ -1216,15 +1218,14 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
                     xAxisID: 'labels',
                     borderColor: 'rgba(128, 0, 128, 0.4)',
                     backgroundColor: 'rgba(128, 0, 128, 0.4)',
-                    data: [],
-                    stack: 'a'
+                    data: []
                 }, {
                     label: mortal_label,
                     xAxisID: 'labels',
                     borderColor: 'rgba(192, 0, 0, 0.4)',
                     backgroundColor: 'rgba(192, 0, 0, 0.4)',
                     data: [],
-                    stack: 'a'
+                    grouped: false
                 }, {
                     label: line_label,
                     xAxisID: 'linear',
