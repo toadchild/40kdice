@@ -3,6 +3,138 @@ function qunit_test() {
         TEST_OVERRIDE = true;
     });
 
+    QUnit.module('dice_sum_prob_array');
+
+    QUnit.test('integer', function(assert) {
+        var hit_dice = '3';
+
+        var attacks = dice_sum_prob_array(hit_dice);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.0
+                ],
+                [
+                    0.0
+                ],
+                [
+                    0.0
+                ],
+                [
+                    1.0
+                ]
+            ],
+            "normal": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        };
+        assert.deepEqual(attacks, expected, "attacks");
+    });
+
+    QUnit.test('one die', function(assert) {
+        var hit_dice = 'd4';
+
+        var attacks = dice_sum_prob_array(hit_dice);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.0
+                ],
+                [
+                    0.25
+                ],
+                [
+                    0.25
+                ],
+                [
+                    0.25
+                ],
+                [
+                    0.25
+                ]
+            ],
+            "normal": [
+                0.0,
+                0.25,
+                0.25,
+                0.25,
+                0.25
+            ]
+        };
+        assert.deepEqual(attacks, expected, "attacks");
+    });
+
+    QUnit.test('two dice', function(assert) {
+        var hit_dice = '2d6';
+
+        var attacks = dice_sum_prob_array(hit_dice);
+
+        var expected = {
+            "mortal": [
+                [
+                    0
+                ],
+                [
+                    0
+                ],
+                [
+                    0.027777777777777776
+                ],
+                [
+                    0.05555555555555555
+                ],
+                [
+                    0.08333333333333333
+                ],
+                [
+                    0.1111111111111111
+                ],
+                [
+                    0.1388888888888889
+                ],
+                [
+                    0.16666666666666669
+                ],
+                [
+                    0.1388888888888889
+                ],
+                [
+                    0.1111111111111111
+                ],
+                [
+                    0.08333333333333333
+                ],
+                [
+                    0.05555555555555555
+                ],
+                [
+                    0.027777777777777776
+                ]
+            ],
+            "normal": [
+                0,
+                0,
+                0.027777777777777776,
+                0.05555555555555555,
+                0.08333333333333333,
+                0.1111111111111111,
+                0.1388888888888889,
+                0.16666666666666669,
+                0.1388888888888889,
+                0.1111111111111111,
+                0.08333333333333333,
+                0.05555555555555555,
+                0.027777777777777776
+            ]
+        };
+        assert.deepEqual(attacks, expected, "attacks");
+    });
+
     QUnit.module('do_hits');
 
     QUnit.test('one basic hit roll', function(assert) {
