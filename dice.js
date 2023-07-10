@@ -365,7 +365,7 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_
     return wounds;
 }
 
-function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, wound_abilities, wounds, wound_prob) {
+function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, cover_max, save_reroll, wound_abilities, wounds, wound_prob) {
     // Always treat AP as negative
     ap_val = -Math.abs(ap_val);
     if (isNaN(save_mod)) {
@@ -375,9 +375,20 @@ function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, 
         ap_val = 0;
     }
     var total_save_mod = save_mod + ap_val;
+
+    // in 40K, models with a 3+ or better save cannot claim cover against AP 0.
+    if (cover_max && save_stat <= cover_max && ap_val == 0) {
+        cover = false;
+    }
     if (cover) {
         total_save_mod++;
     }
+
+    // Save mod cannot be higher than +1.
+    if (save_mod > 1) {
+        save_mod = 1;
+    }
+
     var use_invuln = false;
 
     // Auto-fail the save if no save stat given.
@@ -632,7 +643,7 @@ function roll_40k() {
     var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
 
     // Saves
-    var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, wound_abilities, wounds, wound_prob);
+    var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, 3, save_reroll, wound_abilities, wounds, wound_prob);
 
     // Damage
     var damage = do_damage(damage_val, fnp, damage_prob, unsaved);
@@ -701,7 +712,7 @@ function roll_aos() {
     var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
 
     // Saves
-    var unsaved = do_saves(save_stat, null, rend_val, save_mod, cover, save_reroll, wound_abilities, wounds, wound_prob);
+    var unsaved = do_saves(save_stat, null, rend_val, save_mod, cover, null, save_reroll, wound_abilities, wounds, wound_prob);
 
     // Damage
     var ward;

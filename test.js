@@ -693,7 +693,7 @@ function qunit_test() {
         };
         assert.deepEqual(wounds, expected_wounds, "wounds");
 
-        var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, wound_abilities, wounds, wound_prob);
+        var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, null, save_reroll, wound_abilities, wounds, wound_prob);
 
         var expected_unsaved = {
             "mortal": [
