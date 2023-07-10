@@ -543,6 +543,93 @@ function qunit_test() {
         assert.deepEqual(wounds, expected, "wounds");
     });
 
+    QUnit.module('damage & kills');
+
+    QUnit.test('40K multiwound', function(assert) {
+        var damage_val = 'd3';
+        var wound_val = '2';
+        var fnp = null;
+
+        var damage_prob = parse_dice_prob_array(damage_val).normal;
+        var unsaved = {
+            normal: [0, 0, 1],
+            mortal: [
+                [0],
+                [0],
+                [1]
+            ]
+        };
+
+        var damage = do_damage(damage_val, fnp, damage_prob, unsaved);
+
+        var expected_damage = {
+            "normal": [
+                0,
+                0,
+                0.1111111111111111,
+                0.2222222222222222,
+                0.3333333333333333,
+                0.2222222222222222,
+                0.1111111111111111
+            ]
+        };
+        assert.deepEqual(damage, expected_damage, "damage");
+
+        var kills = do_killed_40k(damage_prob, fnp, unsaved, wound_val);
+
+        var expected_kills = {
+            "normal": [
+                0,
+                0.5555555555555556,
+                0.4444444444444444
+            ]
+        };
+        assert.deepEqual(kills, expected_kills, "kills");
+    });
+
+    QUnit.test('AOS multiwound', function(assert) {
+        var damage_val = 'd3';
+        var wound_val = '2';
+        var fnp = null;
+
+        var damage_prob = parse_dice_prob_array(damage_val).normal;
+        var unsaved = {
+            normal: [0, 0, 1],
+            mortal: [
+                [0],
+                [0],
+                [1]
+            ]
+        };
+
+        var damage = do_damage(damage_val, fnp, damage_prob, unsaved);
+
+        var expected_damage = {
+            "normal": [
+                0,
+                0,
+                0.1111111111111111,
+                0.2222222222222222,
+                0.3333333333333333,
+                0.2222222222222222,
+                0.1111111111111111
+            ]
+        };
+        assert.deepEqual(damage, expected_damage, "damage");
+
+        var kills = do_killed_aos(damage, wound_val);
+
+        var expected_kills = {
+            "normal": [
+                0,
+                0.3333333333333333,
+                0.5555555555555556,
+                0.1111111111111111
+            ]
+        };
+        assert.deepEqual(kills, expected_kills, "kills");
+    });
+
     QUnit.module('Full Stack');
 
     QUnit.test('6 attacks, mortals on hits and wounds', function(assert) {
