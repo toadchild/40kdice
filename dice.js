@@ -1124,6 +1124,9 @@ function graph(raw_data, title, chart_name) {
     if (has_mortal) {
         chart.data.datasets[DATASET_MORTAL].data = mortal;
         chart.data.datasets[DATASET_CUMULATIVE_MORTAL].data = cumulative_mortal_data;
+    } else {
+        chart.data.datasets[DATASET_MORTAL].data = [];
+        chart.data.datasets[DATASET_CUMULATIVE_MORTAL].data = [];
     }
     chart.data.datasets[DATASET_CUMULATIVE].data = cumulative_data;
     chart.data.datasets[DATASET_EXPECTED].data = ev_points;
