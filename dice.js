@@ -400,46 +400,62 @@ function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, cover_max, sa
 
     // Auto-fail the save if no save stat given.
     if (isNaN(save_stat)) {
-        save_stat = 100;
+        save_stat = null;
     }
     if (isNaN(invuln_stat) || invuln_stat == null) {
-        invuln_stat = 100;
+        invuln_stat = null;
     }
 
     // Normal save.
-    var save_prob = success_chance(save_stat, 6, total_save_mod);
-    var save_title = 'save of ' + save_stat + '+';
-    if (total_save_mod) {
-        var sign = '';
-        if (total_save_mod > 0) {
-            sign = '+';
+    var save_prob = {
+        pass_chance: 0.0,
+        fail_chance: 1.0,
+        six_chance: 0.0
+    };
+    var save_title;
+    if (save_stat != null) {
+        save_prob = success_chance(save_stat, 6, total_save_mod);
+        save_title = 'save of ' + save_stat + '+';
+        if (total_save_mod) {
+            var sign = '';
+            if (total_save_mod > 0) {
+                sign = '+';
+            }
+            save_title += ' (' + sign + total_save_mod + ')';
         }
-        save_title += ' (' + sign + total_save_mod + ')';
-    }
-    if (save_reroll == 'fail') {
-        save_title += ', reroll failures';
-        save_prob = reroll(save_prob);
-    } else if (save_reroll == '1') {
-        save_title += ', reroll 1s';
-        save_prob = reroll_1(save_prob);
+        if (save_reroll == 'fail') {
+            save_title += ', reroll failures';
+            save_prob = reroll(save_prob);
+        } else if (save_reroll == '1') {
+            save_title += ', reroll 1s';
+            save_prob = reroll_1(save_prob);
+        }
     }
 
     // Invulnerable save; ignores AP and cover, but includes other modifiers.
-    var invuln_prob = success_chance(invuln_stat, 6, save_mod);
-    var invuln_title = 'save of ' + invuln_stat + '++';
-    if (save_mod) {
-        var sign = '';
-        if (save_mod > 0) {
-            sign = '+';
+    var invuln_prob = {
+        pass_chance: 0.0,
+        fail_chance: 1.0,
+        six_chance: 0.0
+    };
+    var invuln_title;
+    if (invuln_stat != null) {
+        var invuln_prob = success_chance(invuln_stat, 6, save_mod);
+        var invuln_title = 'save of ' + invuln_stat + '++';
+        if (save_mod) {
+            var sign = '';
+            if (save_mod > 0) {
+                sign = '+';
+            }
+            invuln_title += ' (' + sign + save_mod + ')';
         }
-        invuln_title += ' (' + sign + save_mod + ')';
-    }
-    if (save_reroll == 'inv_fail') {
-        invuln_title += ', reroll failures';
-        invuln_prob = reroll(invuln_prob);
-    } else if (save_reroll == 'inv_1') {
-        invuln_title += ', reroll 1s';
-        invuln_prob = reroll_1(invuln_prob);
+        if (save_reroll == 'inv_fail') {
+            invuln_title += ', reroll failures';
+            invuln_prob = reroll(invuln_prob);
+        } else if (save_reroll == 'inv_1') {
+            invuln_title += ', reroll 1s';
+            invuln_prob = reroll_1(invuln_prob);
+        }
     }
 
     // wounds of 6 get additional AP
