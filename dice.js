@@ -1087,11 +1087,15 @@ function graph(raw_data, title, chart_name) {
     }
 
     // Turn mortal count into percentage points
+    var has_mortal = false;
     if (mortal.length <= 1) {
         mortal = [];
     } else {
         for (var m = 0; m < mortal.length; m++) {
             mortal[m] = Math.round(mortal[m] * 1000) / 10.0;
+            if (mortal[m] > 0) {
+                has_mortal = true;
+            }
         }
     }
 
@@ -1117,7 +1121,8 @@ function graph(raw_data, title, chart_name) {
 
     chart.data.datasets[DATASET_PRIMARY].data = data;
     chart.data.datasets[DATASET_MORTAL].data = mortal;
-    chart.data.datasets[DATASET_MORTAL].grouped = mortal.length > 0;
+    chart.data.datasets[DATASET_PRIMARY].grouped = has_mortal;
+    chart.data.datasets[DATASET_MORTAL].grouped = has_mortal;
     chart.data.datasets[DATASET_CUMULATIVE].data = cumulative_data;
     chart.data.datasets[DATASET_EXPECTED].data = ev_points;
     chart.data.labels = labels;
@@ -1255,7 +1260,8 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
                     xAxisID: 'labels',
                     borderColor: 'rgba(128, 0, 128, 0.4)',
                     backgroundColor: 'rgba(128, 0, 128, 0.4)',
-                    data: []
+                    data: [],
+                    grouped: false
                 }, {
                     label: mortal_label,
                     xAxisID: 'labels',
