@@ -366,11 +366,11 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_
     var wound_six_chance = wound_prob.six_chance / wound_prob.pass_chance;
     if (wound_abilities['+mortal']) {
         wounds = rolls_of_6_add_mortal(wounds, wound_six_chance);
-        wound_title += ', 6s deal mortals';
+        wound_title += ', 6s add 1 mortal';
         log_prob_array('+Mortal Wounds', wounds);
     } else if (wound_abilities['mortal']) {
         wounds = rolls_of_6_as_mortal(wounds, wound_six_chance, damage_prob);
-        wound_title += ', 6s add 1 mortal';
+        wound_title += ', 6s deal mortals';
         log_prob_array('Mortal Wounds', wounds);
     }
 
