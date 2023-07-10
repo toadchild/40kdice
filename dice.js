@@ -18,7 +18,7 @@ function is_checked(id) {
 
 // Chance that a single die roll will pass.
 // Returns an object containing several relevant probabilities.
-function success_chance(stat, modifier) {
+function success_chance(stat, crit, modifier) {
     var ret = {};
 
     // No stat means auto-succeed, but nothing special triggers.
@@ -33,46 +33,32 @@ function success_chance(stat, modifier) {
         modifier = 0;
     }
 
-    // Put stat in sane limits (2-7).
+    // The critical threshold value determines when we always succeed - normally a 6.
+    // 1 always fails.
+    if (crit < 2) {
+        crit = 2;
+    } else if (crit > 6) {
+        crit = 6;
+    }
+
+    // Apply modifier to stat naively.
+    stat -= modifier;
+
+    // Put modded stat in sane limits (2-7).
     if (stat < 2) {
         stat = 2;
     } else if (stat > 7) {
         stat = 7;
     }
 
-    // Apply modifier to stat naively.
-    var modded_stat = stat - modifier;
-
-    // Put modded stat in sane limits (2-7).
-    if (modded_stat < 2) {
-        modded_stat = 2;
-    } else if (modded_stat > 7) {
-        modded_stat = 7;
+    // Criticals always succeed.
+    if (stat > crit) {
+        stat = crit;
     }
-    ret.pass_chance = (7 - modded_stat) / 6.0;
+
+    ret.pass_chance = (7 - stat) / 6.0;
     ret.fail_chance = 1.0 - ret.pass_chance;
-
-    // Modifiers are applied to the die roll, not the stat.
-    // So if you have a -1, both 1 and 2 are treated as a result of 1
-    // Similarly, if you have a +1, rolls of 1 and 2 are both treated as a 2.
-
-    // Rerolls, however, only care about the natural values.
-    // So a reroll of 1 is always a natural 1 and 'reroll failed' will not
-    // give you more rerolls for having taken a penalty.  However, reroll
-    // effects are 'may reroll', so you won't be forced to reroll a die that
-    // passes due to positive modifiers.
-
-    if (modifier > 0) {
-        // Positive modifiers increase 6+ range.
-        // Smallest die roll that counts as a result of 6 or more.
-        var six_threshold = Math.max(modded_stat, 6 - modifier);
-        ret.six_chance = (7 - six_threshold) / 6.0;
-    } else if (modifier < 0) {
-        // negative modifiers eliminate results of 6+.
-        ret.six_chance = 0.0;
-    } else {
-        ret.six_chance = 1.0 / 6.0;
-    }
+    ret.six_chance = (7 - crit) / 6.0;
 
     return ret;
 }
@@ -319,8 +305,8 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
     return hits;
 }
 
-function calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_abilities, hit_prob) {
-    var wound_prob = success_chance(wound_stat, wound_mod);
+function calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob) {
+    var wound_prob = success_chance(wound_stat, wound_crit, wound_mod);
 
     // Rerolls
     if (wound_reroll == 'fail') {
@@ -403,7 +389,7 @@ function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, 
     }
 
     // Normal save.
-    var save_prob = success_chance(save_stat, total_save_mod);
+    var save_prob = success_chance(save_stat, 6, total_save_mod);
     var save_title = 'save of ' + save_stat + '+';
     if (total_save_mod) {
         var sign = '';
@@ -421,7 +407,7 @@ function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, 
     }
 
     // Invulnerable save; ignores AP and cover, but includes other modifiers.
-    var invuln_prob = success_chance(invuln_stat, save_mod);
+    var invuln_prob = success_chance(invuln_stat, 6, save_mod);
     var invuln_title = 'save of ' + invuln_stat + '++';
     if (save_mod) {
         var sign = '';
@@ -445,7 +431,7 @@ function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, save_reroll, 
         var ap_mod = parseInt(wound_abilities['pierce'], 10);
 
         // calculate save chance with modified AP.
-        var ap_save_prob = success_chance(save_stat, total_save_mod - ap_mod);
+        var ap_save_prob = success_chance(save_stat, 6, total_save_mod - ap_mod);
         if (save_reroll == 'fail') {
             ap_save_prob = reroll(ap_save_prob);
         } else if (save_reroll == '1') {
@@ -614,7 +600,7 @@ function roll_40k() {
     graph(attacks, attack_title, 'attack');
 
     // Hits
-    var hit_prob = success_chance(hit_stat, hit_mod);
+    var hit_prob = success_chance(hit_stat, 6, hit_mod);
     var hit_abilities = {
         '+hit': hit_sus,
         'autowound': hit_leth,
@@ -642,7 +628,7 @@ function roll_40k() {
         'mortal': wound_dev,
         '+mortal': (wound_of_6 == '+mortal')
     };
-    var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_abilities, hit_prob);
+    var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
     var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
 
     // Saves
@@ -686,7 +672,7 @@ function roll_aos() {
     graph(attacks, attack_title, 'attack');
 
     // Hits
-    var hit_prob = success_chance(hit_stat, hit_mod);
+    var hit_prob = success_chance(hit_stat, 6, hit_mod);
     var hit_abilities = {};
     if (hit_of_6 == '1') {
         hit_abilities['+hit'] = 1;
@@ -701,7 +687,7 @@ function roll_aos() {
     var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
 
     // Wounds
-    var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_abilities, hit_prob);
+    var wound_prob = calc_wound_prob(wound_stat, 6, wound_mod, wound_reroll, hit_abilities, hit_prob);
     var wound_abilities = {};
     if (wound_of_6 == '-1') {
         wound_abilities['pierce'] = 1;

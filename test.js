@@ -346,7 +346,7 @@ function qunit_test() {
 
         var attacks = parse_dice_prob_array(hit_dice);
         var damage_prob = parse_dice_prob_array('1').normal;
-        var hit_prob = success_chance(hit_stat, hit_mod);
+        var hit_prob = success_chance(hit_stat, 6, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
 
@@ -378,7 +378,7 @@ function qunit_test() {
 
         var attacks = parse_dice_prob_array(hit_dice);
         var damage_prob = parse_dice_prob_array('1').normal;
-        var hit_prob = success_chance(hit_stat, hit_mod);
+        var hit_prob = success_chance(hit_stat, 6, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
 
@@ -405,12 +405,13 @@ function qunit_test() {
     QUnit.test('one basic wound roll', function(assert) {
         var wound_stat = 5;
         var wound_mod = 0;
+        var wound_crit = 6;
         var wound_reroll = '';
         var wound_abilities = {};
         var hit_abilities = {};
         var hit_prob = null;
 
-        var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_abilities, hit_prob);
+        var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
         var damage_prob = parse_dice_prob_array('1').normal;
         var hits = {
             "mortal": [
@@ -449,6 +450,7 @@ function qunit_test() {
     QUnit.test('one wound roll with mortals', function(assert) {
         var wound_stat = 5;
         var wound_mod = 0;
+        var wound_crit = 6;
         var wound_reroll = '';
         var wound_abilities = {
             'mortal': true
@@ -456,7 +458,7 @@ function qunit_test() {
         var hit_abilities = {};
         var hit_prob = null;
 
-        var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_abilities, hit_prob);
+        var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
         var damage_prob = parse_dice_prob_array('1').normal;
         var hits = {
             "mortal": [
@@ -493,6 +495,54 @@ function qunit_test() {
         assert.deepEqual(wounds, expected, "wounds");
     });
 
+    QUnit.test('one wound roll with improved crit range', function(assert) {
+        var wound_stat = 5;
+        var wound_mod = 0;
+        var wound_crit = 4;
+        var wound_reroll = '';
+        var wound_abilities = {
+            'mortal': true
+        };
+        var hit_abilities = {};
+        var hit_prob = null;
+
+        var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
+        var damage_prob = parse_dice_prob_array('1').normal;
+        var hits = {
+            "mortal": [
+                [
+                    0.6666666666666667
+                ],
+                [
+                    0.3333333333333333
+                ]
+            ],
+            "normal": [
+                0.6666666666666667,
+                0.3333333333333333
+            ]
+        };
+
+        var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.8333333333333334,
+                    0.16666666666666666
+                ],
+                [
+                    0
+                ]
+            ],
+            "normal": [
+                1,
+                0
+            ]
+        };
+        assert.deepEqual(wounds, expected, "wounds");
+    });
+
     QUnit.module('Full Stack');
 
     QUnit.test('6 attacks, mortals on hits and wounds', function(assert) {
@@ -505,6 +555,7 @@ function qunit_test() {
         };
         var wound_stat = 4;
         var wound_mod = 0;
+        var wound_crit = 6;
         var wound_reroll = '';
         var wound_abilities = {
             'mortal': true
@@ -521,7 +572,7 @@ function qunit_test() {
         var attacks = parse_dice_prob_array(hit_dice);
         var damage_value = '1';
         var damage_prob = parse_dice_prob_array(damage_value).normal;
-        var hit_prob = success_chance(hit_stat, hit_mod);
+        var hit_prob = success_chance(hit_stat, 6, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
 
@@ -582,7 +633,7 @@ function qunit_test() {
         };
         assert.deepEqual(hits, expected_hits, "hits");
 
-        var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_abilities, hit_prob);
+        var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
         var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
 
         var expected_wounds = {
