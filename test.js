@@ -3,12 +3,12 @@ function qunit_test() {
         TEST_OVERRIDE = true;
     });
 
-    QUnit.module('dice_sum_prob_array');
+    QUnit.module('parse_dice_prob_array');
 
     QUnit.test('integer', function(assert) {
         var hit_dice = '3';
 
-        var attacks = dice_sum_prob_array(hit_dice);
+        var attacks = parse_dice_prob_array(hit_dice);
 
         var expected = {
             "mortal": [
@@ -38,7 +38,7 @@ function qunit_test() {
     QUnit.test('one die', function(assert) {
         var hit_dice = 'd4';
 
-        var attacks = dice_sum_prob_array(hit_dice);
+        var attacks = parse_dice_prob_array(hit_dice);
 
         var expected = {
             "mortal": [
@@ -72,7 +72,7 @@ function qunit_test() {
     QUnit.test('two dice', function(assert) {
         var hit_dice = '2d6';
 
-        var attacks = dice_sum_prob_array(hit_dice);
+        var attacks = parse_dice_prob_array(hit_dice);
 
         var expected = {
             "mortal": [
@@ -135,6 +135,206 @@ function qunit_test() {
         assert.deepEqual(attacks, expected, "attacks");
     });
 
+    QUnit.test('integer sum', function(assert) {
+        var hit_dice = '1+2';
+
+        var attacks = parse_dice_prob_array(hit_dice);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.0
+                ],
+                [
+                    0.0
+                ],
+                [
+                    0.0
+                ],
+                [
+                    1.0
+                ]
+            ],
+            "normal": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        };
+        assert.deepEqual(attacks, expected, "attacks");
+    });
+
+    QUnit.test('one die', function(assert) {
+        var hit_dice = 'd4';
+
+        var attacks = parse_dice_prob_array(hit_dice);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.0
+                ],
+                [
+                    0.25
+                ],
+                [
+                    0.25
+                ],
+                [
+                    0.25
+                ],
+                [
+                    0.25
+                ]
+            ],
+            "normal": [
+                0.0,
+                0.25,
+                0.25,
+                0.25,
+                0.25
+            ]
+        };
+        assert.deepEqual(attacks, expected, "attacks");
+    });
+
+    QUnit.test('two dice sum', function(assert) {
+        var hit_dice = 'd6+d6';
+
+        var attacks = parse_dice_prob_array(hit_dice);
+
+        var expected = {
+            "mortal": [
+                [
+                    0
+                ],
+                [
+                    0
+                ],
+                [
+                    0.027777777777777776
+                ],
+                [
+                    0.05555555555555555
+                ],
+                [
+                    0.08333333333333333
+                ],
+                [
+                    0.1111111111111111
+                ],
+                [
+                    0.1388888888888889
+                ],
+                [
+                    0.16666666666666669
+                ],
+                [
+                    0.1388888888888889
+                ],
+                [
+                    0.1111111111111111
+                ],
+                [
+                    0.08333333333333333
+                ],
+                [
+                    0.05555555555555555
+                ],
+                [
+                    0.027777777777777776
+                ]
+            ],
+            "normal": [
+                0,
+                0,
+                0.027777777777777776,
+                0.05555555555555555,
+                0.08333333333333333,
+                0.1111111111111111,
+                0.1388888888888889,
+                0.16666666666666669,
+                0.1388888888888889,
+                0.1111111111111111,
+                0.08333333333333333,
+                0.05555555555555555,
+                0.027777777777777776
+            ]
+        };
+        assert.deepEqual(attacks, expected, "attacks");
+    });
+
+    QUnit.test('complex sum', function(assert) {
+        var hit_dice = '2d6+1+0';
+
+        var attacks = parse_dice_prob_array(hit_dice);
+
+        var expected = {
+            "mortal": [
+                [
+                    0
+                ],
+                [
+                    0
+                ],
+                [
+                    0
+                ],
+                [
+                    0.027777777777777776
+                ],
+                [
+                    0.05555555555555555
+                ],
+                [
+                    0.08333333333333333
+                ],
+                [
+                    0.1111111111111111
+                ],
+                [
+                    0.1388888888888889
+                ],
+                [
+                    0.16666666666666669
+                ],
+                [
+                    0.1388888888888889
+                ],
+                [
+                    0.1111111111111111
+                ],
+                [
+                    0.08333333333333333
+                ],
+                [
+                    0.05555555555555555
+                ],
+                [
+                    0.027777777777777776
+                ]
+            ],
+            "normal": [
+                0,
+                0,
+                0,
+                0.027777777777777776,
+                0.05555555555555555,
+                0.08333333333333333,
+                0.1111111111111111,
+                0.1388888888888889,
+                0.16666666666666669,
+                0.1388888888888889,
+                0.1111111111111111,
+                0.08333333333333333,
+                0.05555555555555555,
+                0.027777777777777776
+            ]
+        };
+        assert.deepEqual(attacks, expected, "attacks");
+    });
+
     QUnit.module('do_hits');
 
     QUnit.test('one basic hit roll', function(assert) {
@@ -144,8 +344,8 @@ function qunit_test() {
         var hit_reroll = '';
         var hit_abilities = {};
 
-        var attacks = dice_sum_prob_array(hit_dice);
-        var damage_prob = dice_sum_prob_array('1').normal;
+        var attacks = parse_dice_prob_array(hit_dice);
+        var damage_prob = parse_dice_prob_array('1').normal;
         var hit_prob = success_chance(hit_stat, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
@@ -176,8 +376,8 @@ function qunit_test() {
             'mortal': true
         };
 
-        var attacks = dice_sum_prob_array(hit_dice);
-        var damage_prob = dice_sum_prob_array('1').normal;
+        var attacks = parse_dice_prob_array(hit_dice);
+        var damage_prob = parse_dice_prob_array('1').normal;
         var hit_prob = success_chance(hit_stat, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
@@ -211,7 +411,7 @@ function qunit_test() {
         var hit_prob = null;
 
         var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_abilities, hit_prob);
-        var damage_prob = dice_sum_prob_array('1').normal;
+        var damage_prob = parse_dice_prob_array('1').normal;
         var hits = {
             "mortal": [
                 [
@@ -257,7 +457,7 @@ function qunit_test() {
         var hit_prob = null;
 
         var wound_prob = calc_wound_prob(wound_stat, wound_mod, wound_reroll, hit_abilities, hit_prob);
-        var damage_prob = dice_sum_prob_array('1').normal;
+        var damage_prob = parse_dice_prob_array('1').normal;
         var hits = {
             "mortal": [
                 [
@@ -318,9 +518,9 @@ function qunit_test() {
         var fnp = '';
         var wound_val = '1';
 
-        var attacks = dice_sum_prob_array(hit_dice);
+        var attacks = parse_dice_prob_array(hit_dice);
         var damage_value = '1';
-        var damage_prob = dice_sum_prob_array(damage_value).normal;
+        var damage_prob = parse_dice_prob_array(damage_value).normal;
         var hit_prob = success_chance(hit_stat, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);

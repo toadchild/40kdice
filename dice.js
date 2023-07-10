@@ -605,10 +605,10 @@ function roll_40k() {
     var wound_val = fetch_int_value('wounds');
     var fnp = fetch_int_value('fnp');
 
-    var damage_prob = dice_sum_prob_array(damage_val).normal;
+    var damage_prob = parse_dice_prob_array(damage_val).normal;
 
     // Number of attacks
-    var attacks = dice_sum_prob_array(hit_dice);
+    var attacks = parse_dice_prob_array(hit_dice);
     var attack_title = hit_dice + ' attacks';
 
     graph(attacks, attack_title, 'attack');
@@ -677,10 +677,10 @@ function roll_aos() {
     var wound_val = fetch_int_value('wounds');
     var shake = fetch_value('shake');
 
-    var damage_prob = dice_sum_prob_array(damage_val).normal;
+    var damage_prob = parse_dice_prob_array(damage_val).normal;
 
     // Number of attacks
-    var attacks = dice_sum_prob_array(hit_dice);
+    var attacks = parse_dice_prob_array(hit_dice);
     var attack_title = hit_dice + ' attacks';
 
     graph(attacks, attack_title, 'attack');
@@ -806,41 +806,58 @@ function filter_prob_array(input_probs, probability) {
 
 // Returns a probability array for a specified number of dice in nDs notation.
 // Will also return a constant probability array if no 'd' is present.
-function dice_sum_prob_array(value) {
-    var die_prob = {'normal': [], 'mortal': []};
-    var i = value.toLowerCase().indexOf('d');
-    // No 'd', return constant probability.
-    if (i == -1) {
-        die_prob.normal.length = value;
-        die_prob.mortal.length = value;
-        for (var n = 0; n < die_prob.normal.length; n++) {
-            die_prob.normal[n] = 0;
-            die_prob.mortal[n] = [0];
+// If one or more '+' is present, generates a probability array for each one and then
+// sums them all together.
+function parse_dice_prob_array(dice_str) {
+    // Start with a die that always rolls 0.
+    var die_prob = roll_const_die(0);
+
+    var parts = dice_str.split('+');
+    for (var v = 0; v < parts.length; v++) {
+        var value = parts[v];
+        var part_prob = roll_const_die(0);
+
+        var i = value.toLowerCase().indexOf('d');
+        // No 'd', return constant probability.
+        if (i == -1) {
+            part_prob = roll_const_die(value);
+        } else {
+            // Multiple uniform dice
+            var n = parseInt(value.substring(0, i), 10);
+            if (isNaN(n) || n <= 0) {
+                n = 1;
+            }
+            var sides = parseInt(value.substring(i + 1), 10);
+            if (isNaN(sides) || sides <= 0) {
+                sides = 1;
+            }
+
+            var die_faces = [];
+            die_faces[0] = 0;
+            for (var i = 1; i <= sides; i++) {
+                die_faces[i] = 1.0 / sides;
+            }
+
+            part_prob = roll_n_dice(n, die_faces);
         }
-        die_prob.normal[die_prob.normal.length] = 1;
-        die_prob.mortal[die_prob.mortal.length] = [1];
-        return die_prob;
-    }
-    var n = parseInt(value.substring(0, i), 10);
-    if (isNaN(n) || n <= 0) {
-        n = 1;
-    }
-    var sides = parseInt(value.substring(i + 1), 10);
-    if (isNaN(sides) || sides <= 0) {
-        sides = 1;
+        die_prob = sum_dice_prob(die_prob, part_prob);
     }
 
-    var die_faces = [];
-    die_faces[0] = 0;
-    for (var i = 1; i <= sides; i++) {
-        die_faces[i] = 1.0 / sides;
+    // Make it a proper prob array with 0 mortal wounds.
+    var final_die_prob = {normal: die_prob, mortal: []};
+    for (var w = 0; w < die_prob.length; w++) {
+        final_die_prob.mortal[w] = [final_die_prob.normal[w]];
     }
+    return final_die_prob;
+}
 
-    die_prob.normal = roll_n_dice(n, die_faces);
-    for (var w = 0; w < die_prob.normal.length; w++) {
-        die_prob.mortal[w] = [die_prob.normal[w]];
-    }
-    return die_prob;
+// Generate a constant probability array
+function roll_const_die(value) {
+    var prob = [];
+    prob.length = value;
+    prob.fill(0);
+    prob[prob.length] = 1;
+    return prob;
 }
 
 // Roll n dice with the given probability distribution.
@@ -850,7 +867,7 @@ function dice_sum_prob_array(value) {
 function roll_n_dice(n, die_prob) {
     // If we're rolling 0 dice, 100% chance of getting 0
     if (n <= 0) {
-        return [1];
+        return roll_const_die(0);
     }
 
     // Make a pair of buffers.  Preload the values for 1 die in each.
@@ -885,6 +902,22 @@ function roll_n_dice(n, die_prob) {
     }
 
     return probs;
+}
+
+// Return a probability array that returns the sum of the two given dice.
+// I'm ignoring mortal wounds for now, as this should only be called when creating new dice.
+function sum_dice_prob(val1, val2) {
+    var sum = [];
+    sum.length = val1.length + val2.length - 1;
+    sum.fill(0);
+
+    for (var i = 0; i < val1.length; i++) {
+        for (var j = 0; j < val2.length; j++) {
+            sum[i + j] += val1[i] * val2[j];
+        }
+    }
+
+    return sum;
 }
 
 // Variant of roll_n_dice that checks the total against a threshold.
