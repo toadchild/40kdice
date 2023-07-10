@@ -579,7 +579,7 @@ function roll_40k() {
     var wound_mod = fetch_int_value('wound_mod');
     var wound_reroll = fetch_value('wound_reroll');
     var wound_dev = is_checked('wound_dev');
-    var wound_crit = fetch_int_value('wound_crit');
+    var wound_crit = fetch_int_value('wound_crit') || 6;
     var wound_of_6 = fetch_value('wound_of_6');
     var save_stat = fetch_int_value('save');
     var invuln_stat = fetch_int_value('invulnerable');
@@ -1031,8 +1031,10 @@ function graph(raw_data, title, chart_name) {
     }
 
     var labels = [];
-    var cumulative_data = [{x: 0, y: 100}];
+    var cumulative_data = [];
+    var cumulative_mortal_data = [];
     var cumulative = 100.0;
+    var cumulative_mortal = 100.0;
     var data = [];
     var mortal = [];
     var chart = charts[chart_name];
@@ -1048,9 +1050,7 @@ function graph(raw_data, title, chart_name) {
 
         data[l] = clean;
         labels[l] = l;
-        if (clean) {
-            cumulative_data.push({x: l + 0.5, y: Math.round(cumulative * 10) / 10.0});
-        }
+        cumulative_data.push({x: l + 0.5, y: Math.round(cumulative * 10) / 10.0});
 
         // Decrement cumulative probability.
         // Note that this uses the true value, not the cleaned value.
@@ -1078,10 +1078,13 @@ function graph(raw_data, title, chart_name) {
         mortal = [];
     } else {
         for (var m = 0; m < mortal.length; m++) {
-            mortal[m] = Math.round(mortal[m] * 1000) / 10.0;
-            if (mortal[m] > 0) {
+            var clean_mortal = Math.round(mortal[m] * 1000) / 10.0;
+            if (clean_mortal) {
                 has_mortal = true;
             }
+            cumulative_mortal_data.push({x: m + 0.5, y: Math.round(cumulative_mortal * 10) / 10.0});
+            cumulative_mortal -= mortal[m] * 100;
+            mortal[m] = clean_mortal;
         }
     }
 
@@ -1092,23 +1095,36 @@ function graph(raw_data, title, chart_name) {
         data.length = max_length;
         mortal.length = max_length;
         labels.length = max_length;
-        if (cumulative_data[cumulative_data.length - 1].x >= max_length) {
-            cumulative_data.length--;
-        }
+        cumulative_data.length = max_length;
+        cumulative_mortal_data.length = max_length;
     }
-    cumulative_data.push({x: max_length, y: 0});
+
+    // Set start and end points for the cumulative to the chart boundaries.
+    cumulative_data[0].x = 0;
+    cumulative_data[max_length - 1] = {x: max_length, y: 0};
+    if (has_mortal) {
+        cumulative_mortal_data[0].x = 0;
+        cumulative_mortal_data[max_length - 1] = {x: max_length, y: 0};
+    }
 
     // Expected values
     var text = document.getElementById(chart_name + '_text');
     var ev = expected_value(raw_data.normal);
     ev = Math.round(ev * 100) / 100.0;
     text.innerHTML = 'Expected: ' + ev;
-    var ev_points = [{x:ev, y:0}, {x:ev, y:100}];
+    var ev_points = [];
+    ev_points.length = Math.floor(ev);
+    ev_points.fill({x: 0, y: null});
+    ev_points[ev_points.length] = {x:ev, y:100};
+    ev_points[ev_points.length] = {x:ev, y:0};
 
     chart.data.datasets[DATASET_PRIMARY].data = data;
-    chart.data.datasets[DATASET_MORTAL].data = mortal;
     chart.data.datasets[DATASET_PRIMARY].grouped = has_mortal;
     chart.data.datasets[DATASET_MORTAL].grouped = has_mortal;
+    if (has_mortal) {
+        chart.data.datasets[DATASET_MORTAL].data = mortal;
+        chart.data.datasets[DATASET_CUMULATIVE_MORTAL].data = cumulative_mortal_data;
+    }
     chart.data.datasets[DATASET_CUMULATIVE].data = cumulative_data;
     chart.data.datasets[DATASET_EXPECTED].data = ev_points;
     chart.data.labels = labels;
@@ -1126,12 +1142,12 @@ var fields_40k = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'woun
 var checkboxes_40k = ['cover', 'hit_leth', 'wound_dev'];
 var selects_40k = ['hit_of_6', 'hit_reroll', 'wound_of_6', 'wound_reroll', 'save_reroll'];
 function init_40k() {
-    charts['attack'] = init_chart('attack_chart', '{n} attacks: ', '>= {n} attacks: ', 'expected: {n} attacks');
-    charts['hit'] = init_chart('hit_chart', '{n} hits: ', '>= {n} hits: ', 'expected: {n} hits');
-    charts['wound'] = init_chart('wound_chart', '{n} wounds: ', '>= {n} wounds: ', 'expected: {n} wounds');
-    charts['unsaved'] = init_chart('unsaved_chart', '{n} unsaved: ', '>= {n} unsaved: ', 'expected: {n} unsaved');
-    charts['damage'] = init_chart('damage_chart', '{n} damage: ', '>= {n} damage: ', 'expected: {n} damage');
-    charts['killed'] = init_chart('killed_chart', '{n} killed: ', '>= {n} killed: ', 'expected: {n} killed');
+    charts['attack'] = init_chart('attack_chart', 'attacks');
+    charts['hit'] = init_chart('hit_chart', 'hits');
+    charts['wound'] = init_chart('wound_chart', 'wounds');
+    charts['unsaved'] = init_chart('unsaved_chart', 'unsaved');
+    charts['damage'] = init_chart('damage_chart', 'damage');
+    charts['killed'] = init_chart('killed_chart', 'killed');
 
     // Populate fields from the parameter string.
     var params = location.hash.substring(1);
@@ -1181,12 +1197,12 @@ var fields_aos = ['attacks', 'hit', 'rend', 'wound', 'd', 'save', 'hit_mod', 'wo
 var checkboxes_aos = ['cover'];
 var selects_aos = ['hit_of_6', 'hit_reroll', 'wound_of_6', 'wound_reroll', 'save_reroll', 'shake'];
 function init_aos() {
-    charts['attack'] = init_chart('attack_chart', '{n} attacks: ', '>= {n} attacks: ', 'expected: {n} attacks');
-    charts['hit'] = init_chart('hit_chart', '{n} hits: ', '>= {n} hits: ', 'expected: {n} hits');
-    charts['wound'] = init_chart('wound_chart', '{n} wounds: ', '>= {n} wounds: ', 'expected: {n} wounds');
-    charts['unsaved'] = init_chart('unsaved_chart', '{n} unsaved: ', '>= {n} unsaved: ', 'expected: {n} unsaved');
-    charts['damage'] = init_chart('damage_chart', '{n} damage: ', '>= {n} damage: ', 'expected: {n} damage');
-    charts['killed'] = init_chart('killed_chart', '{n} killed: ', '>= {n} killed: ', 'expected: {n} killed');
+    charts['attack'] = init_chart('attack_chart', 'attacks');
+    charts['hit'] = init_chart('hit_chart', 'hits');
+    charts['wound'] = init_chart('wound_chart', 'wounds');
+    charts['unsaved'] = init_chart('unsaved_chart', 'unsaved');
+    charts['damage'] = init_chart('damage_chart', 'damage');
+    charts['killed'] = init_chart('killed_chart', 'killed');
 
     // Populate fields from the parameter string.
     var params = location.hash.substring(1);
@@ -1232,57 +1248,94 @@ function generate_permalink_aos() {
 }
 
 // Shared Init
-function init_chart(chart_name, bar_label, line_label, ev_label) {
+function init_chart(chart_name, label) {
     var ctx = document.getElementById(chart_name);
-    var mortal_label = '{n} mortal: ';
 
     return new Chart(ctx, {
-        type: 'bar',
         data: {
             labels: [],
             datasets: [
                 {
-                    label: bar_label,
+                    // DATASET_PRIMARY
+                    type: 'bar',
+                    label: '{n} ' + label + ': ',
                     xAxisID: 'labels',
-                    borderColor: 'rgba(128, 0, 128, 0.4)',
+                    borderColor: 'rgba(128, 0, 128, 1.0)',
                     backgroundColor: 'rgba(128, 0, 128, 0.4)',
+                    borderWidth: 1,
                     data: [],
+                    order: 3,
                     grouped: false
                 }, {
-                    label: mortal_label,
+                    // DATASET_MORTAL
+                    type: 'bar',
+                    label: '{n} mortal: ',
                     xAxisID: 'labels',
-                    borderColor: 'rgba(192, 0, 0, 0.4)',
+                    borderColor: 'rgba(192, 0, 0, 1.0)',
                     backgroundColor: 'rgba(192, 0, 0, 0.4)',
+                    borderWidth: 1,
                     data: [],
+                    order: 3,
                     grouped: false
                 }, {
-                    label: line_label,
+                    // DATASET_EXPECTED
+                    type: 'line',
+                    label: 'expected: {n} ' + label,
                     xAxisID: 'linear',
-                    borderColor: 'rgba(0, 128, 128, 0.4)',
-                    backgroundColor: 'rgba(0, 128, 128, 0.2)',
+                    borderColor: 'rgba(128, 64, 0, 1.0)',
+                    backgroundColor: 'rgba(128, 64, 0, 0.4)',
+                    pointBackgroundColor: 'rgba(128, 64, 0, 0.4)',
+                    pointStyle: false,
+                    data: [],
+                    order: 2,
+                    type: 'line'
+                }, {
+                    // DATASET_CUMULATIVE
+                    type: 'line',
+                    label: '>= {n} ' + label + ': ',
+                    xAxisID: 'linear',
+                    borderColor: 'rgba(0, 128, 128, 1.0)',
+                    backgroundColor: 'rgba(0, 128, 128, 0.1)',
                     pointBackgroundColor: 'rgba(0, 128, 128, 0.4)',
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    pointHoverRadius: 0,
                     fill: 'origin',
                     data: [],
+                    order: 1,
                     type: 'line',
                     cubicInterpolationMode: 'monotone'
                 }, {
-                    label: ev_label,
+                    // DATASET_CUMULATIVE_MORTAL
+                    type: 'line',
+                    label: '>= {n} mortal: ',
                     xAxisID: 'linear',
-                    borderColor: 'rgba(128, 64, 0, 0.4)',
-                    backgroundColor: 'rgba(128, 64, 0, 0.4)',
-                    pointBackgroundColor: 'rgba(128, 64, 0, 0.4)',
+                    borderColor: 'rgba(255, 128, 32, 1.0)',
+                    backgroundColor: 'rgba(255, 128, 32, 0.1)',
+                    pointBackgroundColor: 'rgba(255, 128, 32, 0.4)',
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    pointHoverRadius: 0,
+                    fill: 'origin',
                     data: [],
-                    type: 'line'
+                    order: 0,
+                    type: 'line',
+                    cubicInterpolationMode: 'monotone'
                 }
             ]
         },
         options: {
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
             scales: {
                 labels: {
                     axis: 'x',
                     type: 'linear',
                     min: 0,
                     offset: true,
+                    display: false,
                     ticks: {
                         stepSize: 1
                     }
@@ -1292,7 +1345,10 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
                     type: 'linear',
                     min: 0,
                     offset: false,
-                    display: false
+                    display: true,
+                    ticks: {
+                        stepSize: 1
+                    }
                 },
                 y: {
                     suggestedMax: 100,
@@ -1314,7 +1370,11 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
                         label: function(item) {
                             if (item.datasetIndex == DATASET_EXPECTED) {
                                 // Expected value
-                                return item.dataset.label.replace('{n}', item.parsed.x);
+                                if (item.parsed.y == 100) {
+                                    return item.dataset.label.replace('{n}', item.parsed.x);
+                                } else {
+                                    return null;
+                                }
                             } else {
                                 return item.dataset.label.replace('{n}', Math.floor(item.parsed.x)) + item.parsed.y + '%';
                             }
@@ -1329,7 +1389,8 @@ function init_chart(chart_name, bar_label, line_label, ev_label) {
 // Constants correspond to the chart definitions above.
 const DATASET_PRIMARY = 0;
 const DATASET_MORTAL = 1;
-const DATASET_CUMULATIVE = 2;
-const DATASET_EXPECTED = 3;
+const DATASET_EXPECTED = 2;
+const DATASET_CUMULATIVE = 3;
+const DATASET_CUMULATIVE_MORTAL = 4;
 
 var TEST_OVERRIDE = false;
