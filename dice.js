@@ -333,6 +333,13 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_
         wound_title = 'auto-wound';
     } else {
         wound_title = 'wound on ' + wound_stat + '+';
+        if (wound_mod) {
+            var sign = '';
+            if (wound_mod > 0) {
+                sign = '+';
+            }
+            wound_title += ' (' + sign + wound_mod + ')';
+        }
     }
 
     // Rerolls
@@ -611,6 +618,11 @@ function roll_40k() {
     graph(attacks, attack_title, 'attack');
 
     // Hits
+    if (hit_mod < -1) {
+        hit_mod = -1;
+    }else if (hit_mod > 1) {
+        hit_mod = 1;
+    }
     var hit_prob = success_chance(hit_stat, 6, hit_mod);
     var hit_abilities = {
         '+hit': hit_sus,
@@ -639,6 +651,11 @@ function roll_40k() {
         'mortal': wound_dev,
         '+mortal': (wound_of_6 == '+mortal')
     };
+    if (wound_mod < -1) {
+        wound_mod = -1;
+    }else if (wound_mod > 1) {
+        wound_mod = 1;
+    }
     var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
     var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
 
@@ -683,6 +700,11 @@ function roll_aos() {
     graph(attacks, attack_title, 'attack');
 
     // Hits
+    if (hit_mod < -1) {
+        hit_mod = -1;
+    }else if (hit_mod > 1) {
+        hit_mod = 1;
+    }
     var hit_prob = success_chance(hit_stat, 6, hit_mod);
     var hit_abilities = {};
     if (hit_of_6 == '1') {
@@ -698,6 +720,11 @@ function roll_aos() {
     var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
 
     // Wounds
+    if (wound_mod < -1) {
+        wound_mod = -1;
+    }else if (wound_mod > 1) {
+        wound_mod = 1;
+    }
     var wound_prob = calc_wound_prob(wound_stat, 6, wound_mod, wound_reroll, hit_abilities, hit_prob);
     var wound_abilities = {};
     if (wound_of_6 == '-1') {
