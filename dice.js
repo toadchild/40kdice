@@ -1015,6 +1015,10 @@ function roll_n_dice_against_threshold(n, die_prob, threshold) {
 
 // Logging and validation
 function log_prob_array(label, prob) {
+    if (!DEBUG_ENABLED) {
+        return;
+    }
+
     console.log('--- ' + label + ' ---');
     if (prob.mortal && prob.normal.length != prob.mortal.length) {
         console.error('Mismatched lengths: ' + prob.normal.length + ' != ' + prob.mortal.length);
@@ -1451,3 +1455,4 @@ const DATASET_CUMULATIVE = 3;
 const DATASET_CUMULATIVE_MORTAL = 4;
 
 var TEST_OVERRIDE = false;
+var DEBUG_ENABLED = false;
