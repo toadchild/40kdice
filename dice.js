@@ -1158,11 +1158,13 @@ function graph(raw_data, title, chart_name) {
     }
 
     // Set start and end points for the cumulative to the chart boundaries.
-    cumulative_data[0].x = 0;
-    cumulative_data[max_length] = {x: max_length, y: 0};
-    if (has_mortal) {
-        cumulative_mortal_data[0].x = 0;
-        cumulative_mortal_data[max_length] = {x: max_length, y: 0};
+    if (cumulative_data.length) {
+        cumulative_data[0].x = 0;
+        cumulative_data[max_length] = {x: max_length, y: 0};
+        if (has_mortal) {
+            cumulative_mortal_data[0].x = 0;
+            cumulative_mortal_data[max_length] = {x: max_length, y: 0};
+        }
     }
 
     // Expected values
