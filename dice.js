@@ -607,6 +607,7 @@ function roll_40k() {
     var hit_reroll = fetch_value('hit_reroll');
     var hit_leth = is_checked('hit_leth');
     var hit_sus = fetch_int_value('hit_sus');
+    var hit_crit = fetch_int_value('hit_crit') || 6;
     var hit_of_6 = fetch_value('hit_of_6');
     var s = fetch_int_value('s');
     var t = fetch_int_value('t');
@@ -639,7 +640,7 @@ function roll_40k() {
     }else if (hit_mod > 1) {
         hit_mod = 1;
     }
-    var hit_prob = success_chance(hit_stat, 6, hit_mod);
+    var hit_prob = success_chance(hit_stat, hit_crit, hit_mod);
     var hit_abilities = {
         '+hit': hit_sus,
         'autowound': hit_leth,
