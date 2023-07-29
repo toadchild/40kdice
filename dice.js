@@ -197,8 +197,11 @@ function rolls_of_6_add_mortal(rolls, six_chance) {
     return results;
 }
 
-function hits_of_6_add_hits(hits, bonus_hits, bonus_hit_prob, hit_six_chance) {
+function hits_of_6_add_hits(hits, bonus_hits_val, bonus_hit_chance, hit_six_chance) {
     var results = {'normal': [], 'mortal': []};
+
+    // Parse the bonus hits into a distribution.
+    bonus_hits_prob = parse_dice_prob_array(bonus_hits_val).normal;
 
     // Take hits from each column and move them to the right.
     for (var h = 0; h < hits.normal.length; h++) {
@@ -211,21 +214,26 @@ function hits_of_6_add_hits(hits, bonus_hits, bonus_hit_prob, hit_six_chance) {
         for (var n = 0; n <= h; n++) {
             var n_six_hit_prob = prob(h, n, hit_six_chance);
 
-            // Binomial again to see how many of the bonus hits hit.
-            for (var b = 0; b <= bonus_hits * n; b++) {
-                if (results.normal[h + b] == null) {
-                    results.normal[h + b] = 0;
-                    results.mortal[h + b] = [0];
-                }
+            // Iterate across a prob array for how many hits
+            for (var bonus_hits = 0; bonus_hits < bonus_hits_prob.length; bonus_hits++) {
+                var bonus_val_chance = bonus_hits_prob[bonus_hits];
 
-                var b_prob = prob(bonus_hits * n, b, bonus_hit_prob);
-                var six_delta = hits.normal[h] * n_six_hit_prob * b_prob;
-                results.normal[h + b] += six_delta;
+                // Binomial again to see how many of the bonus hits hit.
+                for (var b = 0; b <= bonus_hits * n; b++) {
+                    if (results.normal[h + b] == null) {
+                        results.normal[h + b] = 0;
+                        results.mortal[h + b] = [0];
+                    }
 
-                if (results.mortal[h + b][0] == null) {
-                    results.mortal[h + b][0] = 0;
+                    var b_prob = prob(bonus_hits * n, b, bonus_hit_chance);
+                    var six_delta = hits.normal[h] * n_six_hit_prob * b_prob * bonus_val_chance;
+                    results.normal[h + b] += six_delta;
+
+                    if (results.mortal[h + b][0] == null) {
+                        results.mortal[h + b][0] = 0;
+                    }
+                    results.mortal[h + b][0] += six_delta;
                 }
-                results.mortal[h + b][0] += six_delta;
             }
         }
     }
@@ -280,19 +288,19 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
     if (hit_abilities['+hit'] || hit_abilities['+roll']) {
         // Probability of a six given that we hit.
         var bonus_hits = 0;
-        var bonus_hit_prob = 0;
+        var bonus_hit_chance = 0;
 
         if (hit_abilities['+hit']) {
             bonus_hits = hit_abilities['+hit'];
             hit_title += ', 6s add ' + bonus_hits + ' extra hit(s)';
-            bonus_hit_prob = 1.0;
+            bonus_hit_chance = 1.0;
         } else if (hit_abilities['+roll']) {
             bonus_hits = hit_abilities['+roll'];
             hit_title += ', 6s add ' + bonus_hits + ' hit roll(s)';
-            bonus_hit_prob = hit_prob.pass_chance;
+            bonus_hit_chance = hit_prob.pass_chance;
         }
 
-        hits = hits_of_6_add_hits(hits, bonus_hits, bonus_hit_prob, hit_six_chance);
+        hits = hits_of_6_add_hits(hits, bonus_hits, bonus_hit_chance, hit_six_chance);
         log_prob_array('Sustained Hits', hits);
     }
 
@@ -606,7 +614,7 @@ function roll_40k() {
     var hit_mod = fetch_int_value('hit_mod');
     var hit_reroll = fetch_value('hit_reroll');
     var hit_leth = is_checked('hit_leth');
-    var hit_sus = fetch_int_value('hit_sus');
+    var hit_sus = fetch_value('hit_sus');
     var hit_crit = fetch_int_value('hit_crit') || 6;
     var hit_of_6 = fetch_value('hit_of_6');
     var s = fetch_int_value('s');
@@ -725,11 +733,11 @@ function roll_aos() {
     var hit_prob = success_chance(hit_stat, 6, hit_mod);
     var hit_abilities = {};
     if (hit_of_6 == '1') {
-        hit_abilities['+hit'] = 1;
+        hit_abilities['+hit'] = '1';
     } else if (hit_of_6 == '2') {
-        hit_abilities['+hit'] = 2;
+        hit_abilities['+hit'] = '2';
     } else if (hit_of_6 == '1roll') {
-        hit_abilities['+roll'] = 1;
+        hit_abilities['+roll'] = '1';
     }
     hit_abilities['autowound'] = (hit_of_6 == 'autowound');
     hit_abilities['+mortal'] = (hit_of_6 == '+mortal');

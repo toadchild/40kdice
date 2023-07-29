@@ -165,40 +165,6 @@ function qunit_test() {
         assert.deepEqual(attacks, expected, "attacks");
     });
 
-    QUnit.test('one die', function(assert) {
-        var hit_dice = 'd4';
-
-        var attacks = parse_dice_prob_array(hit_dice);
-
-        var expected = {
-            "mortal": [
-                [
-                    0.0
-                ],
-                [
-                    0.25
-                ],
-                [
-                    0.25
-                ],
-                [
-                    0.25
-                ],
-                [
-                    0.25
-                ]
-            ],
-            "normal": [
-                0.0,
-                0.25,
-                0.25,
-                0.25,
-                0.25
-            ]
-        };
-        assert.deepEqual(attacks, expected, "attacks");
-    });
-
     QUnit.test('two dice sum', function(assert) {
         var hit_dice = 'd6+d6';
 
@@ -395,6 +361,122 @@ function qunit_test() {
             "normal": [
                 0.8333333333333334,
                 0.16666666666666666
+            ]
+        };
+        assert.deepEqual(hits, expected, "hits");
+    });
+
+    QUnit.test('one hit roll with extra attacks', function(assert) {
+        var hit_stat = 5;
+        var hit_mod = 0;
+        var hit_dice = '1';
+        var hit_reroll = '';
+        var hit_abilities = {
+            '+hit': '1'
+        };
+
+        var attacks = parse_dice_prob_array(hit_dice);
+        var damage_prob = parse_dice_prob_array('1').normal;
+        var hit_prob = success_chance(hit_stat, 6, hit_mod);
+
+        var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.6666666666666667
+                ],
+                [
+                    0.16666666666666666
+                ],
+                [
+                    0.16666666666666666
+                ]
+            ],
+            "normal": [
+                0.6666666666666667,
+                0.16666666666666666,
+                0.16666666666666666
+            ]
+        };
+        assert.deepEqual(hits, expected, "hits");
+    });
+
+    QUnit.test('one hit roll with extra roll', function(assert) {
+        var hit_stat = 5;
+        var hit_mod = 0;
+        var hit_dice = '1';
+        var hit_reroll = '';
+        var hit_abilities = {
+            '+roll': '1'
+        };
+
+        var attacks = parse_dice_prob_array(hit_dice);
+        var damage_prob = parse_dice_prob_array('1').normal;
+        var hit_prob = success_chance(hit_stat, 6, hit_mod);
+
+        var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.6666666666666667
+                ],
+                [
+                    0.2777777777777778
+                ],
+                [
+                    0.05555555555555555
+                ]
+            ],
+            "normal": [
+                0.6666666666666667,
+                0.2777777777777778,
+                0.05555555555555555
+            ]
+        };
+        assert.deepEqual(hits, expected, "hits");
+    });
+
+    QUnit.test('one hit roll with variable extra attacks', function(assert) {
+        var hit_stat = 5;
+        var hit_mod = 0;
+        var hit_dice = '1';
+        var hit_reroll = '';
+        var hit_abilities = {
+            '+hit': 'd3'
+        };
+
+        var attacks = parse_dice_prob_array(hit_dice);
+        var damage_prob = parse_dice_prob_array('1').normal;
+        var hit_prob = success_chance(hit_stat, 6, hit_mod);
+
+        var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.6666666666666667
+                ],
+                [
+                    0.16666666666666666
+                ],
+                [
+                    0.05555555555555555
+                ],
+                [
+                    0.05555555555555555
+                ],
+                [
+                    0.05555555555555555
+                ]
+            ],
+            "normal": [
+                0.6666666666666667,
+                0.16666666666666666,
+                0.05555555555555555,
+                0.05555555555555555,
+                0.05555555555555555
             ]
         };
         assert.deepEqual(hits, expected, "hits");
