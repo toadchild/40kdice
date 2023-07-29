@@ -1202,6 +1202,7 @@ function graph(raw_data, title, chart_name) {
     chart.data.labels = labels;
     chart.options.plugins.title.text = title;
     chart.options.scales['linear'].max = data.length;
+    chart.options.scales['labels'].max = data.length - 0.5;
 
     chart.update();
 }
@@ -1405,8 +1406,8 @@ function init_chart(chart_name, label) {
                 labels: {
                     axis: 'x',
                     type: 'linear',
-                    min: 0,
-                    offset: true,
+                    min: -0.5,
+                    offset: false,
                     display: false,
                     ticks: {
                         stepSize: 1
