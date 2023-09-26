@@ -1211,7 +1211,7 @@ var charts = [];
 
 
 // 40K Init
-var fields_40k = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'wound_mod', 'save_mod', 'invulnerable', 'wounds', 'hit_sus', 'wound_crit', 'fnp'];
+var fields_40k = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'hit_crit', 'wound_mod', 'save_mod', 'invulnerable', 'wounds', 'hit_sus', 'wound_crit', 'fnp'];
 var checkboxes_40k = ['cover', 'hit_leth', 'wound_dev'];
 var selects_40k = ['hit_of_6', 'hit_reroll', 'wound_of_6', 'wound_reroll', 'save_reroll'];
 function init_40k() {
