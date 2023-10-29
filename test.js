@@ -625,6 +625,144 @@ function qunit_test() {
         assert.deepEqual(wounds, expected, "wounds");
     });
 
+    QUnit.module('saving throws');
+
+    QUnit.test('Two saves at 3+', function(assert) {
+        var save_stat = 3;
+        var invuln_stat = null;
+        var ap_val = 0;
+        var save_mod = 0;
+        var cover = 0;
+        var cover_max = 0;
+        var save_reroll = '';
+        var wound_abilities = {
+        };
+        var wounds = {
+            normal: [0, 0, 1],
+            mortal: [
+                [0],
+                [0],
+                [1]
+            ]
+        };
+        var wound_prob = {
+            "pass_chance": 1,
+            "fail_chance": 0,
+            "six_chance": 0
+        };
+
+        var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, cover_max, save_reroll, wound_abilities, wounds, wound_prob);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.4444444444444444
+                ],
+                [
+                    0.4444444444444445
+                ],
+                [
+                    0.11111111111111113
+                ]
+            ],
+            "normal": [
+                0.4444444444444444,
+                0.4444444444444445,
+                0.11111111111111113
+            ]
+        };
+        assert.deepEqual(unsaved, expected, "unsaved");
+    });
+
+    QUnit.test('Two saves at 3+ (AP -4)', function(assert) {
+        var save_stat = 3;
+        var invuln_stat = null;
+        var ap_val = 4;
+        var save_mod = 0;
+        var cover = 0;
+        var cover_max = 0;
+        var save_reroll = '';
+        var wound_abilities = {
+        };
+        var wounds = {
+            normal: [0, 0, 1],
+            mortal: [
+                [0],
+                [0],
+                [1]
+            ]
+        };
+        var wound_prob = {
+            "pass_chance": 1,
+            "fail_chance": 0,
+            "six_chance": 0
+        };
+
+        var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, cover_max, save_reroll, wound_abilities, wounds, wound_prob);
+
+        var expected = {
+            "mortal": [
+                [0],
+                [0],
+                [1]
+            ],
+            "normal": [
+                0,
+                0,
+                1
+            ]
+        };
+        assert.deepEqual(unsaved, expected, "unsaved");
+    });
+
+
+    QUnit.test('Two saves at 3+ (AP -3), invuln 5+', function(assert) {
+        var save_stat = 3;
+        var invuln_stat = 5;
+        var ap_val = 3;
+        var save_mod = 0;
+        var cover = 0;
+        var cover_max = 0;
+        var save_reroll = '';
+        var wound_abilities = {
+        };
+        var wounds = {
+            normal: [0, 0, 1],
+            mortal: [
+                [0],
+                [0],
+                [1]
+            ]
+        };
+        var wound_prob = {
+            "pass_chance": 1,
+            "fail_chance": 0,
+            "six_chance": 0
+        };
+
+        var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, cover_max, save_reroll, wound_abilities, wounds, wound_prob);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.11111111111111106
+                ],
+                [
+                    0.4444444444444444
+                ],
+                [
+                    0.44444444444444453
+                ]
+            ],
+            "normal": [
+                0.11111111111111106,
+                0.4444444444444444,
+                0.44444444444444453
+            ]
+        };
+        assert.deepEqual(unsaved, expected, "unsaved");
+    });
+
     QUnit.module('damage & kills');
 
     QUnit.test('40K multiwound', function(assert) {

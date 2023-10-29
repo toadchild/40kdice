@@ -35,10 +35,12 @@ function success_chance(stat, crit, modifier) {
 
     // The critical threshold value determines when we always succeed - normally a 6.
     // 1 always fails.
-    if (crit < 2) {
-        crit = 2;
-    } else if (crit > 6) {
-        crit = 6;
+    if (crit != null) {
+        if (crit < 2) {
+            crit = 2;
+        } else if (crit > 6) {
+            crit = 6;
+        }
     }
 
     // Apply modifier to stat naively.
@@ -52,13 +54,17 @@ function success_chance(stat, crit, modifier) {
     }
 
     // Criticals always succeed.
-    if (stat > crit) {
+    if (crit && stat > crit) {
         stat = crit;
     }
 
     ret.pass_chance = (7 - stat) / 6.0;
     ret.fail_chance = 1.0 - ret.pass_chance;
-    ret.six_chance = (7 - crit) / 6.0;
+    if (crit != null) {
+        ret.six_chance = (7 - crit) / 6.0;
+    } else {
+        ret.six_chance = 0;
+    }
 
     return ret;
 }
@@ -422,7 +428,7 @@ function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, cover_max, sa
     };
     var save_title;
     if (save_stat != null) {
-        save_prob = success_chance(save_stat, 6, total_save_mod);
+        save_prob = success_chance(save_stat, null, total_save_mod);
         save_title = 'save of ' + save_stat + '+';
         if (total_save_mod) {
             var sign = '';
@@ -448,7 +454,7 @@ function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, cover_max, sa
     };
     var invuln_title;
     if (invuln_stat != null) {
-        var invuln_prob = success_chance(invuln_stat, 6, save_mod);
+        var invuln_prob = success_chance(invuln_stat, null, save_mod);
         var invuln_title = 'save of ' + invuln_stat + '++';
         if (save_mod) {
             var sign = '';
@@ -473,7 +479,7 @@ function do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, cover_max, sa
         var ap_mod = parseInt(wound_abilities['pierce'], 10);
 
         // calculate save chance with modified AP.
-        var ap_save_prob = success_chance(save_stat, 6, total_save_mod - ap_mod);
+        var ap_save_prob = success_chance(save_stat, null, total_save_mod - ap_mod);
         if (save_reroll == 'fail') {
             ap_save_prob = reroll(ap_save_prob);
         } else if (save_reroll == '1') {
