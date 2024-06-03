@@ -482,6 +482,99 @@ function qunit_test() {
         assert.deepEqual(hits, expected, "hits");
     });
 
+    QUnit.test('one hit roll with reroll 1', function(assert) {
+        var hit_stat = 5;
+        var hit_mod = 0;
+        var hit_dice = '1';
+        var hit_reroll = '1';
+        var hit_abilities = {
+        };
+
+        var attacks = parse_dice_prob_array(hit_dice);
+        var damage_prob = parse_dice_prob_array('1').normal;
+        var hit_prob = success_chance(hit_stat, 6, hit_mod);
+
+        var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.6111111111111112
+                ],
+                [
+                    0.38888888888888884
+                ]
+            ],
+            "normal": [
+                0.6111111111111112,
+                0.38888888888888884
+            ]
+        };
+        assert.deepEqual(hits, expected, "hits");
+    });
+
+    QUnit.test('one hit roll with reroll failed', function(assert) {
+        var hit_stat = 5;
+        var hit_mod = 0;
+        var hit_dice = '1';
+        var hit_reroll = 'fail';
+        var hit_abilities = {
+        };
+
+        var attacks = parse_dice_prob_array(hit_dice);
+        var damage_prob = parse_dice_prob_array('1').normal;
+        var hit_prob = success_chance(hit_stat, 6, hit_mod);
+
+        var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.4444444444444444
+                ],
+                [
+                    0.5555555555555556
+                ]
+            ],
+            "normal": [
+                0.4444444444444444,
+                0.5555555555555556
+            ]
+        };
+        assert.deepEqual(hits, expected, "hits");
+    });
+
+    QUnit.test('one hit roll with reroll non-crit', function(assert) {
+        var hit_stat = 5;
+        var hit_mod = 0;
+        var hit_dice = '1';
+        var hit_reroll = 'noncrit';
+        var hit_abilities = {
+        };
+
+        var attacks = parse_dice_prob_array(hit_dice);
+        var damage_prob = parse_dice_prob_array('1').normal;
+        var hit_prob = success_chance(hit_stat, 6, hit_mod);
+
+        var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.5555555555555556
+                ],
+                [
+                    0.4444444444444444
+                ]
+            ],
+            "normal": [
+                0.5555555555555556,
+                0.4444444444444444
+            ]
+        };
+        assert.deepEqual(hits, expected, "hits");
+    });
+
     QUnit.module('do_wounds');
 
     QUnit.test('one basic wound roll', function(assert) {
