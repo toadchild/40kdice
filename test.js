@@ -487,8 +487,7 @@ function qunit_test() {
         var hit_mod = 0;
         var hit_dice = '1';
         var hit_reroll = '1';
-        var hit_abilities = {
-        };
+        var hit_abilities = {};
 
         var attacks = parse_dice_prob_array(hit_dice);
         var damage_prob = parse_dice_prob_array('1').normal;
@@ -518,8 +517,7 @@ function qunit_test() {
         var hit_mod = 0;
         var hit_dice = '1';
         var hit_reroll = 'fail';
-        var hit_abilities = {
-        };
+        var hit_abilities = {};
 
         var attacks = parse_dice_prob_array(hit_dice);
         var damage_prob = parse_dice_prob_array('1').normal;
@@ -549,8 +547,7 @@ function qunit_test() {
         var hit_mod = 0;
         var hit_dice = '1';
         var hit_reroll = 'noncrit';
-        var hit_abilities = {
-        };
+        var hit_abilities = {};
 
         var attacks = parse_dice_prob_array(hit_dice);
         var damage_prob = parse_dice_prob_array('1').normal;
@@ -713,6 +710,186 @@ function qunit_test() {
             "normal": [
                 1,
                 0
+            ]
+        };
+        assert.deepEqual(wounds, expected, "wounds");
+    });
+
+    QUnit.test('one wound roll with reroll 1', function(assert) {
+        var wound_stat = 5;
+        var wound_mod = 0;
+        var wound_crit = 6;
+        var wound_reroll = '1';
+        var wound_abilities = {};
+        var hit_abilities = {};
+        var hit_prob = null;
+
+        var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
+        var damage_prob = parse_dice_prob_array('1').normal;
+        var hits = {
+            "mortal": [
+                [
+                    0.6666666666666667
+                ],
+                [
+                    0.3333333333333333
+                ]
+            ],
+            "normal": [
+                0.6666666666666667,
+                0.3333333333333333
+            ]
+        };
+
+        var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.8703703703703705
+                ],
+                [
+                    0.1296296296296296
+                ]
+            ],
+            "normal": [
+                0.8703703703703705,
+                0.1296296296296296
+            ]
+        };
+        assert.deepEqual(wounds, expected, "wounds");
+    });
+
+    QUnit.test('one wound roll with reroll failed', function(assert) {
+        var wound_stat = 5;
+        var wound_mod = 0;
+        var wound_crit = 6;
+        var wound_reroll = 'fail';
+        var wound_abilities = {};
+        var hit_abilities = {};
+        var hit_prob = null;
+
+        var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
+        var damage_prob = parse_dice_prob_array('1').normal;
+        var hits = {
+            "mortal": [
+                [
+                    0.6666666666666667
+                ],
+                [
+                    0.3333333333333333
+                ]
+            ],
+            "normal": [
+                0.6666666666666667,
+                0.3333333333333333
+            ]
+        };
+
+        var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.8148148148148149
+                ],
+                [
+                    0.18518518518518517
+                ]
+            ],
+            "normal": [
+                0.8148148148148149,
+                0.18518518518518517
+            ]
+        };
+        assert.deepEqual(wounds, expected, "wounds");
+    });
+
+    QUnit.test('one wound roll with reroll non-crit', function(assert) {
+        var wound_stat = 5;
+        var wound_mod = 0;
+        var wound_crit = 6;
+        var wound_reroll = 'noncrit';
+        var wound_abilities = {};
+        var hit_abilities = {};
+        var hit_prob = null;
+
+        var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
+        var damage_prob = parse_dice_prob_array('1').normal;
+        var hits = {
+            "mortal": [
+                [
+                    0.6666666666666667
+                ],
+                [
+                    0.3333333333333333
+                ]
+            ],
+            "normal": [
+                0.6666666666666667,
+                0.3333333333333333
+            ]
+        };
+
+        var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.8518518518518519
+                ],
+                [
+                    0.14814814814814814
+                ]
+            ],
+            "normal": [
+                0.8518518518518519,
+                0.14814814814814814
+            ]
+        };
+        assert.deepEqual(wounds, expected, "wounds");
+    });
+
+    QUnit.test('one wound roll with reroll non-crit, extended crit range', function(assert) {
+        var wound_stat = 5;
+        var wound_mod = 0;
+        var wound_crit = 5;
+        var wound_reroll = 'noncrit';
+        var wound_abilities = {};
+        var hit_abilities = {};
+        var hit_prob = null;
+
+        var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
+        var damage_prob = parse_dice_prob_array('1').normal;
+        var hits = {
+            "mortal": [
+                [
+                    0.6666666666666667
+                ],
+                [
+                    0.3333333333333333
+                ]
+            ],
+            "normal": [
+                0.6666666666666667,
+                0.3333333333333333
+            ]
+        };
+
+        var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
+
+        var expected = {
+            "mortal": [
+                [
+                    0.8148148148148149
+                ],
+                [
+                    0.18518518518518517
+                ]
+            ],
+            "normal": [
+                0.8148148148148149,
+                0.18518518518518517
             ]
         };
         assert.deepEqual(wounds, expected, "wounds");
