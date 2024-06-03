@@ -94,6 +94,19 @@ function reroll(prob){
     return ret;
 }
 
+// Reroll all non-critical rolls, even if they are successes
+// Returns new success probability struct with updated values.
+function reroll_noncrit(prob){
+    var ret = {};
+
+    noncrit_chance = 1.0 - prob.six_chance
+    ret.pass_chance = prob.six_chance + noncrit_chance * prob.pass_chance;
+    ret.fail_chance = 1.0 - ret.pass_chance;
+    ret.six_chance = prob.six_chance + noncrit_chance * prob.six_chance;
+
+    return ret;
+}
+
 // Shake off damage
 // Returns a prob array reflecting the chance to ignore wounds.
 function shake_damage(damage_prob, fnp) {
@@ -269,6 +282,9 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
     } else if (hit_reroll == '1') {
         hit_title += ', reroll 1s';
         hit_prob = reroll_1(hit_prob);
+    } else if (hit_reroll == 'noncrit') {
+        hit_title += ', reroll non-crits';
+        hit_prob = reroll_noncrit(hit_prob);
     }
 
     log_prob_array('Attacks', attacks);
@@ -327,6 +343,8 @@ function calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_ab
         wound_prob = reroll(wound_prob);
     } else if (wound_reroll == '1') {
         wound_prob = reroll_1(wound_prob);
+    } else if (wound_reroll == 'noncrit') {
+        wound_prob = reroll_noncrit(wound_prob);
     }
 
     // Auto-wound on roll of 6+
@@ -361,6 +379,8 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_
         wound_title += ', reroll failed';
     } else if (wound_reroll == '1') {
         wound_title += ', reroll 1s';
+    } else if (wound_reroll == 'noncrit') {
+        wound_title += ', reroll non-crits';
     }
 
     // Apply probability filter
