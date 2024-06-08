@@ -1381,6 +1381,7 @@ function init_chart(chart_name, label) {
                     type: 'line',
                     label: 'expected: {n} ' + label,
                     xAxisID: 'linear',
+                    yAxisID: 'y2',
                     borderColor: 'rgba(128, 64, 0, 1.0)',
                     backgroundColor: 'rgba(128, 64, 0, 0.4)',
                     pointBackgroundColor: 'rgba(128, 64, 0, 0.4)',
@@ -1393,6 +1394,7 @@ function init_chart(chart_name, label) {
                     type: 'line',
                     label: '>= {n} ' + label + ': ',
                     xAxisID: 'linear',
+                    yAxisID: 'y2',
                     borderColor: 'rgba(0, 128, 128, 1.0)',
                     backgroundColor: 'rgba(0, 128, 128, 0.1)',
                     pointBackgroundColor: 'rgba(0, 128, 128, 0.4)',
@@ -1409,6 +1411,7 @@ function init_chart(chart_name, label) {
                     type: 'line',
                     label: '>= {n} mortal: ',
                     xAxisID: 'linear',
+                    yAxisID: 'y2',
                     borderColor: 'rgba(255, 128, 32, 1.0)',
                     backgroundColor: 'rgba(255, 128, 32, 0.1)',
                     pointBackgroundColor: 'rgba(255, 128, 32, 0.4)',
@@ -1450,8 +1453,12 @@ function init_chart(chart_name, label) {
                     }
                 },
                 y: {
-                    suggestedMax: 100,
                     beginAtZero: true
+                },
+                y2: {
+                    suggestedMax: 100,
+                    beginAtZero: true,
+                    position: 'right'
                 }
             },
             plugins: {
