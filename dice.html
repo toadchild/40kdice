@@ -54,9 +54,12 @@
         </p>
 
         <div class="mb-8">
-          <h2 class="text-center text-2xl mb-4">Attack Stats</h2>
-          <div class="w-full sm:flex sm:justify-evenly">
-            <div class="space-y-4 px-4 sm:w-1/3">
+          <div class="w-full sm:grid sm:grid-cols-4 sm:justify-evenly">
+            <h2 class="text-center text-2xl mb-4 sm:col-span-3">
+              Attack Stats
+            </h2>
+            <h2 class="text-center text-2xl mb-4">Defense Stats</h2>
+            <div class="space-y-4 px-4">
               <div>
                 <label
                   for="attacks"
@@ -127,7 +130,7 @@
               </div>
             </div>
             <hr class="mx-4 h-px my-8 bg-gray-500 border-0 sm:hidden" />
-            <div class="space-y-4 px-4 sm:w-1/3">
+            <div class="space-y-4 px-4">
               <div class="flex items-end">
                 <div class="w-2/3">
                   <label
@@ -222,7 +225,7 @@
               </div>
             </div>
             <hr class="mx-4 h-px my-8 bg-gray-500 border-0 sm:hidden" />
-            <div class="space-y-4 px-4 sm:w-1/3">
+            <div class="space-y-4 px-4">
               <div>
                 <label
                   for="wound_mod"
@@ -284,7 +287,7 @@
                 <label
                   for="wound_reroll"
                   class="block mb-2 text-md font-medium text-gray-900"
-                  >Critical Hits Roll</label
+                  >Critical Wounds Roll</label
                 >
                 <select
                   id="wound_reroll"
@@ -297,51 +300,111 @@
                 </select>
               </div>
             </div>
+            <div class="space-y-4 px-4">
+              <div>
+                <label
+                  for="t"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Toughness</label
+                >
+                <input
+                  type="number"
+                  id="t"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  placeholder="Ex: 4, leave blank to auto-wound"
+                />
+              </div>
+              <div class="flex items-end space-x-2">
+                <div>
+                  <label
+                    for="save"
+                    class="block mb-2 text-md font-medium text-gray-900"
+                    >Save</label
+                  >
+                  <input
+                    type="number"
+                    id="save"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    placeholder="Ex: 4"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    for="save_mod"
+                    class="block mb-2 text-md font-medium text-gray-900"
+                    >Save Modifier</label
+                  >
+                  <input
+                    type="number"
+                    id="save_mod"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    placeholder="Ex: 1, -2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    for="invulnerable"
+                    class="block mb-2 text-md font-medium text-gray-900"
+                    >Invulnerable</label
+                  >
+                  <input
+                    type="number"
+                    id="invulnerable"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    placeholder="Ex: 4"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label
+                  for="wounds"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Wounds Per Model</label
+                >
+                <input
+                  type="number"
+                  id="wounds"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  placeholder="Ex: 1, 13, leave blank if you don't care"
+                />
+              </div>
+              <div>
+                <label
+                  for="fnp"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Feel No Pain</label
+                >
+                <input
+                  type="number"
+                  id="fnp"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  placeholder="Ex: 4, 6"
+                />
+              </div>
+              <div>
+                <label
+                  for="save_reroll"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Reroll</label
+                >
+                <select
+                  id="save_reroll"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                >
+                  <option value="">No save rolls</option>
+                  <option value="1">Any save rolls of 1</option>
+                  <option value="fail">Any failed save rolls</option>
+                  <option value="inv_1">Invulnerable save rolls of 1</option>
+                  <option value="inv_fail">
+                    Failed invulnerable save rolls
+                  </option>
+                </select>
+              </div>
+            </div>
           </div>
-        </div>
-        <div>
-          <h2>Defense Stats</h2>
-          <p>
-            <label>T: <input type="text" id="t" /></label>
-            <span class="description">Ex: 4, leave blank to auto-wound</span>
-          </p>
-          <p>
-            <label>Save: <input type="text" id="save" /></label>
-            <span class="description">Ex: 4</span>
-          </p>
-          <p>
-            <label>Save Modifier: <input type="text" id="save_mod" /></label>
-            <span class="description">Ex: 1, -2</span>
-          </p>
-          <p>
-            <label><input type="checkbox" id="cover" value="1" />Cover</label>
-          </p>
-          <p>
-            <label
-              >Invulnerable Save: <input type="text" id="invulnerable"
-            /></label>
-            <span class="description">Ex: 4</span>
-          </p>
-          <p>
-            Reroll:
-            <select id="save_reroll">
-              <option value="">No save rolls</option>
-              <option value="1">Any save rolls of 1</option>
-              <option value="fail">Any failed save rolls</option>
-              <option value="inv_1">Invulnerable save rolls of 1</option>
-              <option value="inv_fail">Failed invulnerable save rolls</option>
-            </select>
-          </p>
-          <p>
-            <label>Wounds per model: <input type="text" id="wounds" /></label>
-            <span class="description"
-              >Ex: 1, 13, leave blank if you don't care</span
-            >
-          </p>
-          <p>
-            <label>Feel No Pain: <input type="text" id="fnp" /></label>
-            <span class="description">Ex: 4, 6</span>
-          </p>
         </div>
         <p><button onclick="roll_40k()">Roll</button></p>
 
