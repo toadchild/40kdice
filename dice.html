@@ -53,12 +53,16 @@
           feedback or bug reports are welcome.
         </p>
 
-        <div class="mb-8">
-          <div class="w-full sm:grid sm:grid-cols-4 sm:justify-evenly">
-            <h2 class="text-center text-2xl mb-4 sm:col-span-3">
+        <div class="mb-8 mt-4">
+          <div
+            class="w-full sm:grid lg:grid-cols-2 xl:grid-cols-4 sm:justify-evenly"
+          >
+            <h2 class="text-center text-2xl mb-4 lg:col-span-2 xl:col-span-3">
               Attack Stats
             </h2>
-            <h2 class="text-center text-2xl mb-4">Defense Stats</h2>
+            <h2 class="text-center text-2xl mb-4 hidden xl:inline">
+              Defense Stats
+            </h2>
             <div class="space-y-4 px-4">
               <div>
                 <label
@@ -126,7 +130,7 @@
                 />
               </div>
             </div>
-            <hr class="mx-4 h-px my-8 bg-gray-500 border-0 sm:hidden" />
+            <hr class="mx-4 h-px my-8 bg-gray-500 border-0 lg:hidden" />
             <div class="space-y-4 px-4">
               <div class="flex items-end">
                 <div class="w-2/3">
@@ -218,7 +222,17 @@
                 </select>
               </div>
             </div>
-            <hr class="mx-4 h-px my-8 bg-gray-500 border-0 sm:hidden" />
+            <h2
+              class="text-center text-2xl mb-4 mt-8 hidden lg:inline xl:hidden"
+            >
+              Attack Stats (More)
+            </h2>
+            <h2
+              class="text-center text-2xl mb-4 mt-8 hidden lg:inline xl:hidden"
+            >
+              Defense Stats
+            </h2>
+            <hr class="mx-4 h-px my-8 bg-gray-500 border-0 lg:hidden" />
             <div class="space-y-4 px-4">
               <div>
                 <label
@@ -292,6 +306,9 @@
                 </select>
               </div>
             </div>
+            <h2 class="text-center text-2xl mb-4 mt-8 lg:hidden">
+              Defense Stats
+            </h2>
             <div class="space-y-4 px-4">
               <div>
                 <label
@@ -404,38 +421,40 @@
           </button>
         </div>
 
-        <div class="flex justify-evenly mb-8">
-          <div class="output">
+        <div
+          class="grid grid-cols-2 lg:grid-cols-3 xl:flex xl:justify-evenly mb-8"
+        >
+          <div class="flex flex-col justify-center items-center">
             <div class="chart">
               <canvas id="attack_chart" width="100" height="100"></canvas>
             </div>
             <p id="attack_text"></p>
           </div>
-          <div class="output">
+          <div class="flex flex-col justify-center items-center">
             <div class="chart">
               <canvas id="hit_chart" width="100" height="100"></canvas>
             </div>
             <p id="hit_text"></p>
           </div>
-          <div class="output">
+          <div class="flex flex-col justify-center items-center">
             <div class="chart">
               <canvas id="wound_chart" width="100" height="100"></canvas>
             </div>
             <p id="wound_text"></p>
           </div>
-          <div class="output">
+          <div class="flex flex-col justify-center items-center">
             <div class="chart">
               <canvas id="unsaved_chart" width="100" height="100"></canvas>
             </div>
             <p id="unsaved_text"></p>
           </div>
-          <div class="output">
+          <div class="flex flex-col justify-center items-center">
             <div class="chart">
               <canvas id="damage_chart" width="100" height="100"></canvas>
             </div>
             <p id="damage_text"></p>
           </div>
-          <div class="output">
+          <div class="flex flex-col justify-center items-center">
             <div class="chart">
               <canvas id="killed_chart" width="100" height="100"></canvas>
             </div>
