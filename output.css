@@ -615,12 +615,37 @@ a {
   margin-bottom: 3rem;
 }
 
+.-my-12 {
+  margin-top: -3rem;
+  margin-bottom: -3rem;
+}
+
+.-mb-16 {
+  margin-bottom: -4rem;
+}
+
+.-mb-12 {
+  margin-bottom: -3rem;
+}
+
 .h-\[100vh\] {
   height: 100vh;
 }
 
 .w-full {
   width: 100%;
+}
+
+.w-24 {
+  width: 6rem;
+}
+
+.w-96 {
+  width: 24rem;
+}
+
+.w-\[20rem\] {
+  width: 20rem;
 }
 
 .rounded-xl {
