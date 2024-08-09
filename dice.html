@@ -53,101 +53,249 @@
           feedback or bug reports are welcome.
         </p>
 
-        <div>
-          <h2>Attack Stats</h2>
-          <p>
-            <label>Attacks: <input type="text" id="attacks" /></label>
-            <span class="description">Ex: 4, 2d3, d6+1</span>
-          </p>
-          <p>
-            <label>BS/WS: <input type="text" id="bs" /></label>
-            <span class="description">Ex: 4, leave blank to auto-hit</span>
-          </p>
-          <p>
-            <label>S: <input type="text" id="s" /></label>
-            <span class="description">Ex: 4, leave blank to auto-wound</span>
-          </p>
-          <p>
-            <label>AP: <input type="text" id="ap" /></label>
-            <span class="description">Ex: -1, 2 (sign is ignored)</span>
-          </p>
-          <p>
-            <label>D: <input type="text" id="d" value="1" /></label>
-            <span class="description">Ex: 4, 2d3, d6+1</span>
-          </p>
-          <hr />
-          <p>
-            <label>Hit Modifier: <input type="text" id="hit_mod" /></label>
-            <span class="description">Ex: 1, -2</span>
-          </p>
-          <p>
-            <label
-              ><input type="checkbox" id="hit_leth" value="1" />Lethal
-              Hits</label
-            >
-          </p>
-          <p>
-            <label>Sustained Hits: <input type="text" id="hit_sus" /></label>
-            <span class="description">Ex: 1, 2</span>
-          </p>
-          <p>
-            <label>Critical Hit: <input type="text" id="hit_crit" /></label>
-            <span class="description">Ex: 2, 4</span>
-          </p>
-          <p>
-            Critical hit rolls:
-            <select id="hit_of_6">
-              <option value="">Have no other abilities</option>
-              <option value="+mortal">
-                Deal 1 mortal wound in addition to regular damage
-              </option>
-              <option value="mortal">Deal their damage as mortal wounds</option>
-            </select>
-          </p>
-          <p>
-            Reroll:
-            <select id="hit_reroll">
-              <option value="">No hit rolls</option>
-              <option value="1">Hit rolls of 1</option>
-              <option value="fail">Failed hit rolls</option>
-              <option value="noncrit">Non-critical hit rolls</option>
-            </select>
-          </p>
-          <hr />
-          <p>
-            <label>Wound Modifier: <input type="text" id="wound_mod" /></label>
-            <span class="description">Ex: 1, -2</span>
-          </p>
-          <p>
-            <label
-              ><input type="checkbox" id="wound_dev" value="1" />Devastating
-              Wounds</label
-            >
-          </p>
-          <p>
-            <label
-              >Critical Wound (Anti-X): <input type="text" id="wound_crit"
-            /></label>
-            <span class="description">Ex: 2, 4</span>
-          </p>
-          <p>
-            Critical wound rolls:
-            <select id="wound_of_6">
-              <option value="">Have no other abilities</option>
-              <option value="+mortal">
-                Deal 1 mortal wound in addition to regular damage
-              </option>
-            </select>
-          </p>
-          <p>
-            Reroll:
-            <select id="wound_reroll">
-              <option value="">No wound rolls</option>
-              <option value="1">Wound rolls of 1</option>
-              <option value="fail">Failed wound rolls</option>
-              <option value="noncrit">Non-critical wound rolls</option>
-            </select>
-          </p>
+        <div class="mb-8">
+          <h2 class="text-center text-2xl mb-4">Attack Stats</h2>
+          <div class="flex justify-evenly">
+            <div class="space-y-4 px-4 w-1/3">
+              <div>
+                <label
+                  for="attacks"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Attacks</label
+                >
+                <input
+                  type="text"
+                  id="attacks"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  placeholder="Ex: 4, 2d3, d6+1"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  for="bs"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >BS / WS</label
+                >
+                <input
+                  type="number"
+                  id="bs"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  placeholder="Ex: 4, leave blank to auto-hit"
+                />
+              </div>
+              <div>
+                <label
+                  for="s"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Strength</label
+                >
+                <input
+                  type="number"
+                  id="s"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  placeholder="Ex: 4, leave blank to auto-wound"
+                />
+              </div>
+              <div>
+                <label
+                  for="ap"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >AP</label
+                >
+                <input
+                  type="number"
+                  id="ap"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  placeholder="Ex: -1, 2 (sign is ignored)"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  for="d"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Damage</label
+                >
+                <input
+                  type="text"
+                  id="d"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  placeholder="Ex: 4, 2d3, d6+1"
+                  required
+                />
+              </div>
+            </div>
+            <div class="space-y-4 px-4 w-1/3">
+              <div class="flex items-end">
+                <div class="w-2/3">
+                  <label
+                    for="hit-modifier"
+                    class="block mb-2 text-md font-medium text-gray-900"
+                    >Hit Modifier</label
+                  >
+                  <input
+                    type="number"
+                    id="hit-modifier"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    placeholder="Ex: 1, -2"
+                    required
+                  />
+                </div>
+                <div class="flex items-center ps-4">
+                  <input
+                    id="hit_leth"
+                    type="checkbox"
+                    name="hit_leth"
+                    class="w-4 h-4 text-blue-600 bg-gray-100 focus:ring-blue-500 focus:ring-2"
+                  />
+                  <label
+                    for="hit_leth"
+                    class="w-full py-4 ms-2 text-sm font-medium text-gray-900"
+                    >Lethal Hits</label
+                  >
+                </div>
+              </div>
+              <div>
+                <label
+                  for="hit_sus"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Sustained Hits</label
+                >
+                <input
+                  type="number"
+                  id="hit_sus"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  placeholder="Ex: 1, 2"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  for="hit_crit"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Critical Hits</label
+                >
+                <input
+                  type="number"
+                  id="hit_crit"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  placeholder="Ex: 2, 4"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  for="hit_of_6"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Critical Hits Roll</label
+                >
+                <select
+                  id="hit_of_6"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                >
+                  <option value="">Have no other abilities</option>
+                  <option value="+mortal">
+                    Deal 1 mortal wound in addition to regular damage
+                  </option>
+                  <option value="mortal">
+                    Deal their damage as mortal wounds
+                  </option>
+                </select>
+              </div>
+              <div>
+                <label
+                  for="hit_reroll"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Reroll</label
+                >
+                <select
+                  id="hit_reroll"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                >
+                  <option value="">No hit rolls</option>
+                  <option value="1">Hit rolls of 1</option>
+                  <option value="fail">Failed hit rolls</option>
+                  <option value="noncrit">Non-critical hit rolls</option>
+                </select>
+              </div>
+            </div>
+            <div class="space-y-4 px-4 w-1/3">
+              <div>
+                <label
+                  for="wound_mod"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Wound Modifier</label
+                >
+                <input
+                  type="number"
+                  id="wound_mod"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  placeholder="Ex: 1, -2"
+                  required
+                />
+              </div>
+              <div class="flex items-center pb-2 pt-4">
+                <input
+                  id="wound_dev"
+                  type="checkbox"
+                  name="wound_dev"
+                  class="w-4 h-4 text-blue-600 bg-gray-100 focus:ring-blue-500 focus:ring-2"
+                />
+                <label
+                  for="wound_dev"
+                  class="w-full py-4 ms-2 text-sm font-medium text-gray-900"
+                  >Devastating Wounds</label
+                >
+              </div>
+              <div>
+                <label
+                  for="wound_crit"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Critical Wound (Anti-X)</label
+                >
+                <input
+                  type="number"
+                  id="wound_crit"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  placeholder="Ex: 2, 4"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  for="wound_of_6"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Critical Hits Roll</label
+                >
+                <select
+                  id="wound_of_6"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                >
+                  <option value="">Have no other abilities</option>
+                  <option value="+mortal">
+                    Deal 1 mortal wound in addition to regular damage
+                  </option>
+                </select>
+              </div>
+              <div>
+                <label
+                  for="wound_reroll"
+                  class="block mb-2 text-md font-medium text-gray-900"
+                  >Critical Hits Roll</label
+                >
+                <select
+                  id="wound_reroll"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                >
+                  <option value="">No wound rolls</option>
+                  <option value="1">Wound rolls of 1</option>
+                  <option value="fail">Failed wound rolls</option>
+                  <option value="noncrit">Non-critical wound rolls</option>
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
         <div>
           <h2>Defense Stats</h2>
