@@ -395,7 +395,7 @@
             </div>
           </div>
         </div>
-        <div class="my-8 flex items-center justify-center w-full">
+        <div class="mt-8 mb-4 flex items-center justify-center w-full">
           <button
             class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-md px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700"
             onclick="roll_40k()"
@@ -404,43 +404,44 @@
           </button>
         </div>
 
-        <div class="output">
-          <div class="chart">
-            <canvas id="attack_chart" width="100" height="100"></canvas>
+        <div class="flex justify-evenly mb-8">
+          <div class="output">
+            <div class="chart">
+              <canvas id="attack_chart" width="100" height="100"></canvas>
+            </div>
+            <p id="attack_text"></p>
           </div>
-          <p id="attack_text"></p>
-        </div>
-        <div class="output">
-          <div class="chart">
-            <canvas id="hit_chart" width="100" height="100"></canvas>
+          <div class="output">
+            <div class="chart">
+              <canvas id="hit_chart" width="100" height="100"></canvas>
+            </div>
+            <p id="hit_text"></p>
           </div>
-          <p id="hit_text"></p>
-        </div>
-        <div class="output">
-          <div class="chart">
-            <canvas id="wound_chart" width="100" height="100"></canvas>
+          <div class="output">
+            <div class="chart">
+              <canvas id="wound_chart" width="100" height="100"></canvas>
+            </div>
+            <p id="wound_text"></p>
           </div>
-          <p id="wound_text"></p>
-        </div>
-        <div class="output">
-          <div class="chart">
-            <canvas id="unsaved_chart" width="100" height="100"></canvas>
+          <div class="output">
+            <div class="chart">
+              <canvas id="unsaved_chart" width="100" height="100"></canvas>
+            </div>
+            <p id="unsaved_text"></p>
           </div>
-          <p id="unsaved_text"></p>
-        </div>
-        <div class="output">
-          <div class="chart">
-            <canvas id="damage_chart" width="100" height="100"></canvas>
+          <div class="output">
+            <div class="chart">
+              <canvas id="damage_chart" width="100" height="100"></canvas>
+            </div>
+            <p id="damage_text"></p>
           </div>
-          <p id="damage_text"></p>
-        </div>
-        <div class="output">
-          <div class="chart">
-            <canvas id="killed_chart" width="100" height="100"></canvas>
+          <div class="output">
+            <div class="chart">
+              <canvas id="killed_chart" width="100" height="100"></canvas>
+            </div>
+            <p id="killed_text"></p>
           </div>
-          <p id="killed_text"></p>
         </div>
-
         <p class="endnote">
           This tool was created by
           <a href="http://ghostlords.com/">Jonathan Polley</a> to help enhance
