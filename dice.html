@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="UTF-8" />
@@ -31,208 +31,219 @@
     />
   </head>
   <link href="./output.css" rel="stylesheet" />
-  <body onload="init_40k()" class="px-24 pt-16">
-    <h1 class="text-center text-4xl">40K Visual Dice Calculator (10th Ed)</h1>
-    <p>
-      Please also check out the version for
-      <a class="text-blue-600" href="/dice/aos.html">AoS</a>
-    </p>
-    <p>
-      The update to 10th Edition is new and there may still be bugs. However,
-      I've also fixed a number of existing bugs and limitations while adding
-      support for new rules and abilities. As always, any feedback or bug
-      reports are welcome.
-    </p>
+  <body onload="init_40k()">
+    <img src="background.webp" class="top-0 fixed w-full h-[100vh] -z-10" />
+    <div class="top-0">
+      <div class="container bg-white/90 mx-auto my-12 px-8 py-12 rounded-xl">
+        <h1 class="text-center text-4xl">
+          40K Visual Dice Calculator (10th Ed)
+        </h1>
+        <p>
+          Please also check out the version for
+          <a class="text-blue-600" href="/dice/aos.html">AoS</a>
+        </p>
+        <p>
+          The update to 10th Edition is new and there may still be bugs.
+          However, I've also fixed a number of existing bugs and limitations
+          while adding support for new rules and abilities. As always, any
+          feedback or bug reports are welcome.
+        </p>
 
-    <div>
-      <h2>Attack Stats</h2>
-      <p>
-        <label>Attacks: <input type="text" id="attacks" /></label>
-        <span class="description">Ex: 4, 2d3, d6+1</span>
-      </p>
-      <p>
-        <label>BS/WS: <input type="text" id="bs" /></label>
-        <span class="description">Ex: 4, leave blank to auto-hit</span>
-      </p>
-      <p>
-        <label>S: <input type="text" id="s" /></label>
-        <span class="description">Ex: 4, leave blank to auto-wound</span>
-      </p>
-      <p>
-        <label>AP: <input type="text" id="ap" /></label>
-        <span class="description">Ex: -1, 2 (sign is ignored)</span>
-      </p>
-      <p>
-        <label>D: <input type="text" id="d" value="1" /></label>
-        <span class="description">Ex: 4, 2d3, d6+1</span>
-      </p>
-      <hr />
-      <p>
-        <label>Hit Modifier: <input type="text" id="hit_mod" /></label>
-        <span class="description">Ex: 1, -2</span>
-      </p>
-      <p>
-        <label
-          ><input type="checkbox" id="hit_leth" value="1" />Lethal Hits</label
-        >
-      </p>
-      <p>
-        <label>Sustained Hits: <input type="text" id="hit_sus" /></label>
-        <span class="description">Ex: 1, 2</span>
-      </p>
-      <p>
-        <label>Critical Hit: <input type="text" id="hit_crit" /></label>
-        <span class="description">Ex: 2, 4</span>
-      </p>
-      <p>
-        Critical hit rolls:
-        <select id="hit_of_6">
-          <option value="">Have no other abilities</option>
-          <option value="+mortal">
-            Deal 1 mortal wound in addition to regular damage
-          </option>
-          <option value="mortal">Deal their damage as mortal wounds</option>
-        </select>
-      </p>
-      <p>
-        Reroll:
-        <select id="hit_reroll">
-          <option value="">No hit rolls</option>
-          <option value="1">Hit rolls of 1</option>
-          <option value="fail">Failed hit rolls</option>
-          <option value="noncrit">Non-critical hit rolls</option>
-        </select>
-      </p>
-      <hr />
-      <p>
-        <label>Wound Modifier: <input type="text" id="wound_mod" /></label>
-        <span class="description">Ex: 1, -2</span>
-      </p>
-      <p>
-        <label
-          ><input type="checkbox" id="wound_dev" value="1" />Devastating
-          Wounds</label
-        >
-      </p>
-      <p>
-        <label
-          >Critical Wound (Anti-X): <input type="text" id="wound_crit"
-        /></label>
-        <span class="description">Ex: 2, 4</span>
-      </p>
-      <p>
-        Critical wound rolls:
-        <select id="wound_of_6">
-          <option value="">Have no other abilities</option>
-          <option value="+mortal">
-            Deal 1 mortal wound in addition to regular damage
-          </option>
-        </select>
-      </p>
-      <p>
-        Reroll:
-        <select id="wound_reroll">
-          <option value="">No wound rolls</option>
-          <option value="1">Wound rolls of 1</option>
-          <option value="fail">Failed wound rolls</option>
-          <option value="noncrit">Non-critical wound rolls</option>
-        </select>
-      </p>
-    </div>
-    <div>
-      <h2>Defense Stats</h2>
-      <p>
-        <label>T: <input type="text" id="t" /></label>
-        <span class="description">Ex: 4, leave blank to auto-wound</span>
-      </p>
-      <p>
-        <label>Save: <input type="text" id="save" /></label>
-        <span class="description">Ex: 4</span>
-      </p>
-      <p>
-        <label>Save Modifier: <input type="text" id="save_mod" /></label>
-        <span class="description">Ex: 1, -2</span>
-      </p>
-      <p>
-        <label><input type="checkbox" id="cover" value="1" />Cover</label>
-      </p>
-      <p>
-        <label
-          >Invulnerable Save: <input type="text" id="invulnerable"
-        /></label>
-        <span class="description">Ex: 4</span>
-      </p>
-      <p>
-        Reroll:
-        <select id="save_reroll">
-          <option value="">No save rolls</option>
-          <option value="1">Any save rolls of 1</option>
-          <option value="fail">Any failed save rolls</option>
-          <option value="inv_1">Invulnerable save rolls of 1</option>
-          <option value="inv_fail">Failed invulnerable save rolls</option>
-        </select>
-      </p>
-      <p>
-        <label>Wounds per model: <input type="text" id="wounds" /></label>
-        <span class="description"
-          >Ex: 1, 13, leave blank if you don't care</span
-        >
-      </p>
-      <p>
-        <label>Feel No Pain: <input type="text" id="fnp" /></label>
-        <span class="description">Ex: 4, 6</span>
-      </p>
-    </div>
-    <p><button onclick="roll_40k()">Roll</button></p>
+        <div>
+          <h2>Attack Stats</h2>
+          <p>
+            <label>Attacks: <input type="text" id="attacks" /></label>
+            <span class="description">Ex: 4, 2d3, d6+1</span>
+          </p>
+          <p>
+            <label>BS/WS: <input type="text" id="bs" /></label>
+            <span class="description">Ex: 4, leave blank to auto-hit</span>
+          </p>
+          <p>
+            <label>S: <input type="text" id="s" /></label>
+            <span class="description">Ex: 4, leave blank to auto-wound</span>
+          </p>
+          <p>
+            <label>AP: <input type="text" id="ap" /></label>
+            <span class="description">Ex: -1, 2 (sign is ignored)</span>
+          </p>
+          <p>
+            <label>D: <input type="text" id="d" value="1" /></label>
+            <span class="description">Ex: 4, 2d3, d6+1</span>
+          </p>
+          <hr />
+          <p>
+            <label>Hit Modifier: <input type="text" id="hit_mod" /></label>
+            <span class="description">Ex: 1, -2</span>
+          </p>
+          <p>
+            <label
+              ><input type="checkbox" id="hit_leth" value="1" />Lethal
+              Hits</label
+            >
+          </p>
+          <p>
+            <label>Sustained Hits: <input type="text" id="hit_sus" /></label>
+            <span class="description">Ex: 1, 2</span>
+          </p>
+          <p>
+            <label>Critical Hit: <input type="text" id="hit_crit" /></label>
+            <span class="description">Ex: 2, 4</span>
+          </p>
+          <p>
+            Critical hit rolls:
+            <select id="hit_of_6">
+              <option value="">Have no other abilities</option>
+              <option value="+mortal">
+                Deal 1 mortal wound in addition to regular damage
+              </option>
+              <option value="mortal">Deal their damage as mortal wounds</option>
+            </select>
+          </p>
+          <p>
+            Reroll:
+            <select id="hit_reroll">
+              <option value="">No hit rolls</option>
+              <option value="1">Hit rolls of 1</option>
+              <option value="fail">Failed hit rolls</option>
+              <option value="noncrit">Non-critical hit rolls</option>
+            </select>
+          </p>
+          <hr />
+          <p>
+            <label>Wound Modifier: <input type="text" id="wound_mod" /></label>
+            <span class="description">Ex: 1, -2</span>
+          </p>
+          <p>
+            <label
+              ><input type="checkbox" id="wound_dev" value="1" />Devastating
+              Wounds</label
+            >
+          </p>
+          <p>
+            <label
+              >Critical Wound (Anti-X): <input type="text" id="wound_crit"
+            /></label>
+            <span class="description">Ex: 2, 4</span>
+          </p>
+          <p>
+            Critical wound rolls:
+            <select id="wound_of_6">
+              <option value="">Have no other abilities</option>
+              <option value="+mortal">
+                Deal 1 mortal wound in addition to regular damage
+              </option>
+            </select>
+          </p>
+          <p>
+            Reroll:
+            <select id="wound_reroll">
+              <option value="">No wound rolls</option>
+              <option value="1">Wound rolls of 1</option>
+              <option value="fail">Failed wound rolls</option>
+              <option value="noncrit">Non-critical wound rolls</option>
+            </select>
+          </p>
+        </div>
+        <div>
+          <h2>Defense Stats</h2>
+          <p>
+            <label>T: <input type="text" id="t" /></label>
+            <span class="description">Ex: 4, leave blank to auto-wound</span>
+          </p>
+          <p>
+            <label>Save: <input type="text" id="save" /></label>
+            <span class="description">Ex: 4</span>
+          </p>
+          <p>
+            <label>Save Modifier: <input type="text" id="save_mod" /></label>
+            <span class="description">Ex: 1, -2</span>
+          </p>
+          <p>
+            <label><input type="checkbox" id="cover" value="1" />Cover</label>
+          </p>
+          <p>
+            <label
+              >Invulnerable Save: <input type="text" id="invulnerable"
+            /></label>
+            <span class="description">Ex: 4</span>
+          </p>
+          <p>
+            Reroll:
+            <select id="save_reroll">
+              <option value="">No save rolls</option>
+              <option value="1">Any save rolls of 1</option>
+              <option value="fail">Any failed save rolls</option>
+              <option value="inv_1">Invulnerable save rolls of 1</option>
+              <option value="inv_fail">Failed invulnerable save rolls</option>
+            </select>
+          </p>
+          <p>
+            <label>Wounds per model: <input type="text" id="wounds" /></label>
+            <span class="description"
+              >Ex: 1, 13, leave blank if you don't care</span
+            >
+          </p>
+          <p>
+            <label>Feel No Pain: <input type="text" id="fnp" /></label>
+            <span class="description">Ex: 4, 6</span>
+          </p>
+        </div>
+        <p><button onclick="roll_40k()">Roll</button></p>
 
-    <div class="output">
-      <div class="chart">
-        <canvas id="attack_chart" width="100" height="100"></canvas>
-      </div>
-      <p id="attack_text"></p>
-    </div>
-    <div class="output">
-      <div class="chart">
-        <canvas id="hit_chart" width="100" height="100"></canvas>
-      </div>
-      <p id="hit_text"></p>
-    </div>
-    <div class="output">
-      <div class="chart">
-        <canvas id="wound_chart" width="100" height="100"></canvas>
-      </div>
-      <p id="wound_text"></p>
-    </div>
-    <div class="output">
-      <div class="chart">
-        <canvas id="unsaved_chart" width="100" height="100"></canvas>
-      </div>
-      <p id="unsaved_text"></p>
-    </div>
-    <div class="output">
-      <div class="chart">
-        <canvas id="damage_chart" width="100" height="100"></canvas>
-      </div>
-      <p id="damage_text"></p>
-    </div>
-    <div class="output">
-      <div class="chart">
-        <canvas id="killed_chart" width="100" height="100"></canvas>
-      </div>
-      <p id="killed_text"></p>
-    </div>
+        <div class="output">
+          <div class="chart">
+            <canvas id="attack_chart" width="100" height="100"></canvas>
+          </div>
+          <p id="attack_text"></p>
+        </div>
+        <div class="output">
+          <div class="chart">
+            <canvas id="hit_chart" width="100" height="100"></canvas>
+          </div>
+          <p id="hit_text"></p>
+        </div>
+        <div class="output">
+          <div class="chart">
+            <canvas id="wound_chart" width="100" height="100"></canvas>
+          </div>
+          <p id="wound_text"></p>
+        </div>
+        <div class="output">
+          <div class="chart">
+            <canvas id="unsaved_chart" width="100" height="100"></canvas>
+          </div>
+          <p id="unsaved_text"></p>
+        </div>
+        <div class="output">
+          <div class="chart">
+            <canvas id="damage_chart" width="100" height="100"></canvas>
+          </div>
+          <p id="damage_text"></p>
+        </div>
+        <div class="output">
+          <div class="chart">
+            <canvas id="killed_chart" width="100" height="100"></canvas>
+          </div>
+          <p id="killed_text"></p>
+        </div>
 
-    <p class="endnote">
-      This tool was created by
-      <a href="http://ghostlords.com/">Jonathan Polley</a> to help enhance your
-      enjoyment of Warhammer 40000. Please direct any feedback to
-      <a href="mailto:40k@ghostlords.com">40k@ghostlords.com</a>.<br />
-      Bug reports are welcome on
-      <a href="https://github.com/toadchild/40kdice/issues">Github</a>.<br />
-      <a href="https://www.games-workshop.com/Warhammer-40-000"
-        >Warhammer 40000</a
-      >
-      is &copy; Games Workshop Limited.<br />
-    </p>
+        <p class="endnote">
+          This tool was created by
+          <a href="http://ghostlords.com/">Jonathan Polley</a> to help enhance
+          your enjoyment of Warhammer 40000. Please direct any feedback to
+          <a href="mailto:40k@ghostlords.com">40k@ghostlords.com</a>.<br />
+          Bug reports are welcome on
+          <a href="https://github.com/toadchild/40kdice/issues">Github</a
+          >.<br />
+          <a href="https://www.games-workshop.com/Warhammer-40-000"
+            >Warhammer 40000</a
+          >
+          is &copy; Games Workshop Limited.<br />
+          Wallpaper credit goes to
+          <a href="https://www.patreon.com/brushray">Dmitry Brushray</a>
+        </p>
+      </div>
+    </div>
   </body>
 </html>
