@@ -654,7 +654,8 @@ function roll_40k() {
     var invuln_stat = fetch_int_value('invulnerable');
     var ap_val = fetch_int_value('ap');
     var save_mod = fetch_int_value('save_mod');
-    var cover = is_checked('cover');
+    // NOTE: this was removed for prettier UI. The cover bonus can be added in the save modifier
+    // var cover = is_checked('cover');
     var save_reroll = fetch_value('save_reroll');
     var damage_val = fetch_value('d');
     var wound_val = fetch_int_value('wounds');
@@ -711,7 +712,7 @@ function roll_40k() {
     var wounds = do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_abilities, damage_prob);
 
     // Saves
-    var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, cover, 3, save_reroll, wound_abilities, wounds, wound_prob);
+    var unsaved = do_saves(save_stat, invuln_stat, ap_val, save_mod, false, 3, save_reroll, wound_abilities, wounds, wound_prob);
 
     // Damage
     var damage = do_damage(damage_val, fnp, damage_prob, unsaved);
@@ -1238,7 +1239,7 @@ var charts = [];
 
 // 40K Init
 var fields_40k = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'hit_crit', 'wound_mod', 'save_mod', 'invulnerable', 'wounds', 'hit_sus', 'wound_crit', 'fnp'];
-var checkboxes_40k = ['cover', 'hit_leth', 'wound_dev'];
+var checkboxes_40k = ['hit_leth', 'wound_dev'];
 var selects_40k = ['hit_of_6', 'hit_reroll', 'wound_of_6', 'wound_reroll', 'save_reroll'];
 function init_40k() {
     charts['attack'] = init_chart('attack_chart', 'attacks');
@@ -1272,7 +1273,7 @@ function init_40k() {
 
 function generate_permalink_40k() {
     var pairs = [];
-    for(var i = 0; i < fields_40k.length; i++) {
+    for (var i = 0; i < fields_40k.length; i++) {
         if (document.getElementById(fields_40k[i]).value) {
             pairs[pairs.length] = fields_40k[i] + '=' + document.getElementById(fields_40k[i]).value;
         }
