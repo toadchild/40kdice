@@ -1,1 +1,1 @@
-dice.js;
+dice.js
