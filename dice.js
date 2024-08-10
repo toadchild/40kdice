@@ -720,6 +720,14 @@ function roll_40k() {
     // Models Killed
     var killed = do_killed_40k(damage_prob, fnp, unsaved, wound_val);
 
+    document
+        .getElementById("charts-container")
+        .scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+        inline: "nearest",
+        });
+
     generate_permalink_40k();
 }
 
@@ -805,6 +813,9 @@ function roll_aos() {
     // Models Killed
     var killed = do_killed_aos(damage, wound_val);
 
+    document
+      .getElementById("charts-container")
+      .scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
     generate_permalink_aos();
 }
 
