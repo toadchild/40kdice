@@ -278,13 +278,10 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
     // Rerolls
     if (hit_reroll == 'fail') {
         hit_title += ', reroll misses';
-        hit_prob = reroll(hit_prob);
     } else if (hit_reroll == '1') {
         hit_title += ', reroll 1s';
-        hit_prob = reroll_1(hit_prob);
     } else if (hit_reroll == 'noncrit') {
         hit_title += ', reroll non-crits';
-        hit_prob = reroll_noncrit(hit_prob);
     }
 
     log_prob_array('Attacks', attacks);
@@ -675,6 +672,16 @@ function roll_40k() {
         hit_mod = 1;
     }
     var hit_prob = success_chance(hit_stat, hit_crit, hit_mod);
+
+    // Rerolls
+    if (hit_reroll == 'fail') {
+        hit_prob = reroll(hit_prob);
+    } else if (hit_reroll == '1') {
+        hit_prob = reroll_1(hit_prob);
+    } else if (hit_reroll == 'noncrit') {
+        hit_prob = reroll_noncrit(hit_prob);
+    }
+
     var hit_abilities = {
         '+hit': hit_sus,
         'autowound': hit_leth,
