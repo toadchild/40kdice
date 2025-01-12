@@ -220,7 +220,7 @@ function hits_of_6_add_hits(hits, bonus_hits_val, bonus_hit_chance, hit_six_chan
     var results = {'normal': [], 'mortal': []};
 
     // Parse the bonus hits into a distribution.
-    bonus_hits_prob = parse_dice_prob_array(bonus_hits_val).normal;
+    bonus_hits_prob = parse_dice_prob_array(bonus_hits_val, 1).normal;
 
     // Take hits from each column and move them to the right.
     for (var h = 0; h < hits.normal.length; h++) {
@@ -635,6 +635,7 @@ function do_killed_aos(damage, wound_val) {
 
 function roll_40k() {
     // Fetch all values up front
+    var num_models = fetch_int_value('models');
     var hit_dice = fetch_value('attacks');
     var hit_stat = fetch_int_value('bs');
     var hit_mod = fetch_int_value('hit_mod');
@@ -660,11 +661,11 @@ function roll_40k() {
     var wound_val = fetch_int_value('wounds');
     var fnp = fetch_int_value('fnp');
 
-    var damage_prob = parse_dice_prob_array(damage_val).normal;
+    var damage_prob = parse_dice_prob_array(damage_val, 1).normal;
 
     // Number of attacks
-    var attacks = parse_dice_prob_array(hit_dice);
-    var attack_title = hit_dice + ' attacks';
+    var attacks = parse_dice_prob_array(hit_dice, num_models);
+    var attack_title = num_models + ' models, ' + hit_dice + ' attacks';
 
     graph(attacks, attack_title, 'attack');
 
@@ -725,6 +726,7 @@ function roll_40k() {
 function roll_aos() {
     // Fetch all values up front
     var hit_dice = fetch_value('attacks');
+    var num_models = fetch_int_value('models');
     var hit_stat = fetch_int_value('hit');
     var hit_mod = fetch_int_value('hit_mod');
     var hit_reroll = fetch_value('hit_reroll');
@@ -742,11 +744,11 @@ function roll_aos() {
     var wound_val = fetch_int_value('wounds');
     var shake = fetch_value('shake');
 
-    var damage_prob = parse_dice_prob_array(damage_val).normal;
+    var damage_prob = parse_dice_prob_array(damage_val, 1).normal;
 
     // Number of attacks
-    var attacks = parse_dice_prob_array(hit_dice);
-    var attack_title = hit_dice + ' attacks';
+    var attacks = parse_dice_prob_array(hit_dice, num_models);
+    var attack_title = num_models + ' models, ' + hit_dice + ' attacks';
 
     graph(attacks, attack_title, 'attack');
 
@@ -883,7 +885,8 @@ function filter_prob_array(input_probs, probability) {
 // Will also return a constant probability array if no 'd' is present.
 // If one or more '+' is present, generates a probability array for each one and then
 // sums them all together.
-function parse_dice_prob_array(dice_str) {
+// The entire result is multiplied by 'multiplier' if > 1.
+function parse_dice_prob_array(dice_str, multiplier) {
     // Start with a die that always rolls 0.
     var die_prob = roll_const_die(0);
 
@@ -918,9 +921,15 @@ function parse_dice_prob_array(dice_str) {
         die_prob = sum_dice_prob(die_prob, part_prob);
     }
 
+    // Perform the multiplier.
+    var multiplied_die_prob = roll_const_die(0);
+    for (var m = 0; m < multiplier; m++) {
+        multiplied_die_prob = sum_dice_prob(multiplied_die_prob, die_prob);
+    }
+
     // Make it a proper prob array with 0 mortal wounds.
-    var final_die_prob = {normal: die_prob, mortal: []};
-    for (var w = 0; w < die_prob.length; w++) {
+    var final_die_prob = {normal: multiplied_die_prob, mortal: []};
+    for (var w = 0; w < multiplied_die_prob.length; w++) {
         final_die_prob.mortal[w] = [final_die_prob.normal[w]];
     }
     return final_die_prob;
@@ -1237,7 +1246,7 @@ var charts = [];
 
 
 // 40K Init
-var fields_40k = ['attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'hit_crit', 'wound_mod', 'save_mod', 'invulnerable', 'wounds', 'hit_sus', 'wound_crit', 'fnp'];
+var fields_40k = ['models', 'attacks', 'bs', 'ap', 's', 'd', 't', 'save', 'hit_mod', 'hit_crit', 'wound_mod', 'save_mod', 'invulnerable', 'wounds', 'hit_sus', 'wound_crit', 'fnp'];
 var checkboxes_40k = ['cover', 'hit_leth', 'wound_dev'];
 var selects_40k = ['hit_of_6', 'hit_reroll', 'wound_of_6', 'wound_reroll', 'save_reroll'];
 function init_40k() {
@@ -1292,7 +1301,7 @@ function generate_permalink_40k() {
 }
 
 // AoS Init
-var fields_aos = ['attacks', 'hit', 'rend', 'wound', 'd', 'save', 'hit_mod', 'wound_mod', 'save_mod', 'wounds'];
+var fields_aos = ['models', 'attacks', 'hit', 'rend', 'wound', 'd', 'save', 'hit_mod', 'wound_mod', 'save_mod', 'wounds'];
 var checkboxes_aos = ['cover'];
 var selects_aos = ['hit_of_6', 'hit_reroll', 'wound_of_6', 'wound_reroll', 'save_reroll', 'shake'];
 function init_aos() {

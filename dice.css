@@ -3,16 +3,49 @@
 }
 
 .chart {
-    width: 200px;
+    width: 400px;
     height: 200px;
 }
 
 .endnote {
     clear: both;
     font-size: 75%;
+    padding-top: 5em;
+    color: grey;
 }
 
 .description {
     color: grey;
     font-style: italic;
+}
+
+.modifiers {
+    float: left;
+    padding: 5px;
+    margin: 5px;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+.input {
+    margin: 5px;
+    padding-left: 5px;
+    border-left: 4px solid blue;
+}
+
+.input::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+input.stat {
+    width: 5em;
+}
+
+.output {
+    padding: 5px;
+    margin: 5px;
+    border: 1px solid black;
+    border-radius: 5px;
 }
