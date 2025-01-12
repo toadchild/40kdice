@@ -69,6 +69,19 @@ function success_chance(stat, crit, modifier) {
     return ret;
 }
 
+// Rerolls
+function do_rerolls(prob, reroll_type) {
+    if (reroll_type == 'fail') {
+        prob = reroll(prob);
+    } else if (reroll_type == '1') {
+        prob = reroll_1(prob);
+    } else if (reroll_type == 'noncrit') {
+        prob = reroll_noncrit(prob);
+    }
+
+    return prob;
+}
+
 // Reroll 1s
 // Returns new success probability struct with updated values.
 function reroll_1(prob){
@@ -334,15 +347,7 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
 
 function calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob) {
     var wound_prob = success_chance(wound_stat, wound_crit, wound_mod);
-
-    // Rerolls
-    if (wound_reroll == 'fail') {
-        wound_prob = reroll(wound_prob);
-    } else if (wound_reroll == '1') {
-        wound_prob = reroll_1(wound_prob);
-    } else if (wound_reroll == 'noncrit') {
-        wound_prob = reroll_noncrit(wound_prob);
-    }
+    wound_prob = do_rerolls(wound_prob, wound_reroll);
 
     // Auto-wound on roll of 6+
     // Only apply normal wound probability to lesser hits
@@ -673,14 +678,7 @@ function roll_40k() {
     }
     var hit_prob = success_chance(hit_stat, hit_crit, hit_mod);
 
-    // Rerolls
-    if (hit_reroll == 'fail') {
-        hit_prob = reroll(hit_prob);
-    } else if (hit_reroll == '1') {
-        hit_prob = reroll_1(hit_prob);
-    } else if (hit_reroll == 'noncrit') {
-        hit_prob = reroll_noncrit(hit_prob);
-    }
+    hit_prob = do_rerolls(hit_prob, hit_reroll);
 
     var hit_abilities = {
         '+hit': hit_sus,
@@ -764,6 +762,9 @@ function roll_aos() {
         hit_mod = 1;
     }
     var hit_prob = success_chance(hit_stat, 6, hit_mod);
+
+    hit_prob = do_rerolls(hit_prob, hit_reroll);
+
     var hit_abilities = {};
     if (hit_of_6 == '1') {
         hit_abilities['+hit'] = '1';
