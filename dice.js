@@ -298,11 +298,11 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
     // Apply these independently of generating additional hits
     if (hit_abilities['mortal']) {
         hits = rolls_of_6_as_mortal(hits, hit_six_chance, damage_prob);
-        hit_title += ', 6s deal mortals';
+        hit_title += ', crits deal mortals';
         log_prob_array('Mortal Hits', hits);
     } else if (hit_abilities['+mortal']) {
         hits = rolls_of_6_add_mortal(hits, hit_six_chance);
-        hit_title += ', 6s add 1 mortal';
+        hit_title += ', crits add 1 mortal';
         log_prob_array('+Mortal Hits', hits);
     }
 
@@ -314,11 +314,11 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
 
         if (hit_abilities['+hit']) {
             bonus_hits = hit_abilities['+hit'];
-            hit_title += ', 6s add ' + bonus_hits + ' extra hit(s)';
+            hit_title += ', crits add ' + bonus_hits + ' extra hit(s)';
             bonus_hit_chance = 1.0;
         } else if (hit_abilities['+roll']) {
             bonus_hits = hit_abilities['+roll'];
-            hit_title += ', 6s add ' + bonus_hits + ' hit roll(s)';
+            hit_title += ', crits add ' + bonus_hits + ' hit roll(s)';
             bonus_hit_chance = hit_prob.pass_chance;
         }
 
@@ -327,7 +327,7 @@ function do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_p
     }
 
     if (hit_abilities['autowound']) {
-        hit_title += ', 6s autowound';
+        hit_title += ', crits autowound';
     }
 
     graph(hits, hit_title, 'hit');
@@ -393,11 +393,11 @@ function do_wounds(wound_stat, wound_mod, wound_reroll, wound_prob, hits, wound_
     var wound_six_chance = wound_prob.six_chance / wound_prob.pass_chance;
     if (wound_abilities['+mortal']) {
         wounds = rolls_of_6_add_mortal(wounds, wound_six_chance);
-        wound_title += ', 6s add 1 mortal';
+        wound_title += ', crits add 1 mortal';
         log_prob_array('+Mortal Wounds', wounds);
     } else if (wound_abilities['mortal']) {
         wounds = rolls_of_6_as_mortal(wounds, wound_six_chance, damage_prob);
-        wound_title += ', 6s deal mortals';
+        wound_title += ', crits deal mortals';
         log_prob_array('Mortal Wounds', wounds);
     }
 
