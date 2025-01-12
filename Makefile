@@ -12,3 +12,6 @@ out: dice.js dice.html aos.html dice.css
 install: out
 	rm -f $(INSTALL_PATH)/dice-*.js
 	cp out/* $(INSTALL_PATH)
+
+clean:
+	rm -rf out
