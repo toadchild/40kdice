@@ -774,7 +774,7 @@ function qunit_test() {
         var hit_prob = null;
 
         var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hits = {
             "mortal": [
                 [
@@ -819,7 +819,7 @@ function qunit_test() {
         var hit_prob = null;
 
         var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hits = {
             "mortal": [
                 [
@@ -864,7 +864,7 @@ function qunit_test() {
         var hit_prob = null;
 
         var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hits = {
             "mortal": [
                 [
@@ -908,8 +908,8 @@ function qunit_test() {
             'autowound': true
         };
 
-        var attacks = parse_dice_prob_array(hit_dice);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var attacks = parse_dice_prob_array(hit_dice, 1);
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hit_prob = success_chance(hit_stat, 6, hit_mod);
         hit_prob = do_rerolls(hit_prob, hit_reroll);
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
