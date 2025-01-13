@@ -8,7 +8,7 @@ function qunit_test() {
     QUnit.test('integer', function(assert) {
         var hit_dice = '3';
 
-        var attacks = parse_dice_prob_array(hit_dice);
+        var attacks = parse_dice_prob_array(hit_dice, 1);
 
         var expected = {
             "mortal": [
@@ -38,7 +38,7 @@ function qunit_test() {
     QUnit.test('one die', function(assert) {
         var hit_dice = 'd4';
 
-        var attacks = parse_dice_prob_array(hit_dice);
+        var attacks = parse_dice_prob_array(hit_dice, 1);
 
         var expected = {
             "mortal": [
@@ -72,7 +72,7 @@ function qunit_test() {
     QUnit.test('two dice', function(assert) {
         var hit_dice = '2d6';
 
-        var attacks = parse_dice_prob_array(hit_dice);
+        var attacks = parse_dice_prob_array(hit_dice, 1);
 
         var expected = {
             "mortal": [
@@ -138,7 +138,7 @@ function qunit_test() {
     QUnit.test('integer sum', function(assert) {
         var hit_dice = '1+2';
 
-        var attacks = parse_dice_prob_array(hit_dice);
+        var attacks = parse_dice_prob_array(hit_dice, 1);
 
         var expected = {
             "mortal": [
@@ -168,7 +168,7 @@ function qunit_test() {
     QUnit.test('two dice sum', function(assert) {
         var hit_dice = 'd6+d6';
 
-        var attacks = parse_dice_prob_array(hit_dice);
+        var attacks = parse_dice_prob_array(hit_dice, 1);
 
         var expected = {
             "mortal": [
@@ -234,7 +234,7 @@ function qunit_test() {
     QUnit.test('complex sum', function(assert) {
         var hit_dice = '2d6+1+0';
 
-        var attacks = parse_dice_prob_array(hit_dice);
+        var attacks = parse_dice_prob_array(hit_dice, 1);
 
         var expected = {
             "mortal": [
@@ -310,8 +310,8 @@ function qunit_test() {
         var hit_reroll = '';
         var hit_abilities = {};
 
-        var attacks = parse_dice_prob_array(hit_dice);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var attacks = parse_dice_prob_array(hit_dice, 1);
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hit_prob = success_chance(hit_stat, 6, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
@@ -342,8 +342,8 @@ function qunit_test() {
             'mortal': true
         };
 
-        var attacks = parse_dice_prob_array(hit_dice);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var attacks = parse_dice_prob_array(hit_dice, 1);
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hit_prob = success_chance(hit_stat, 6, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
@@ -375,8 +375,8 @@ function qunit_test() {
             '+hit': '1'
         };
 
-        var attacks = parse_dice_prob_array(hit_dice);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var attacks = parse_dice_prob_array(hit_dice, 1);
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hit_prob = success_chance(hit_stat, 6, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
@@ -411,8 +411,8 @@ function qunit_test() {
             '+roll': '1'
         };
 
-        var attacks = parse_dice_prob_array(hit_dice);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var attacks = parse_dice_prob_array(hit_dice, 1);
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hit_prob = success_chance(hit_stat, 6, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
@@ -447,8 +447,8 @@ function qunit_test() {
             '+hit': 'd3'
         };
 
-        var attacks = parse_dice_prob_array(hit_dice);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var attacks = parse_dice_prob_array(hit_dice, 1);
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hit_prob = success_chance(hit_stat, 6, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
@@ -489,8 +489,8 @@ function qunit_test() {
         var hit_reroll = '1';
         var hit_abilities = {};
 
-        var attacks = parse_dice_prob_array(hit_dice);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var attacks = parse_dice_prob_array(hit_dice, 1);
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hit_prob = success_chance(hit_stat, 6, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
@@ -519,8 +519,8 @@ function qunit_test() {
         var hit_reroll = 'fail';
         var hit_abilities = {};
 
-        var attacks = parse_dice_prob_array(hit_dice);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var attacks = parse_dice_prob_array(hit_dice, 1);
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hit_prob = success_chance(hit_stat, 6, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
@@ -549,8 +549,8 @@ function qunit_test() {
         var hit_reroll = 'noncrit';
         var hit_abilities = {};
 
-        var attacks = parse_dice_prob_array(hit_dice);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var attacks = parse_dice_prob_array(hit_dice, 1);
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hit_prob = success_chance(hit_stat, 6, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
@@ -584,7 +584,7 @@ function qunit_test() {
         var hit_prob = null;
 
         var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hits = {
             "mortal": [
                 [
@@ -631,7 +631,7 @@ function qunit_test() {
         var hit_prob = null;
 
         var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hits = {
             "mortal": [
                 [
@@ -679,7 +679,7 @@ function qunit_test() {
         var hit_prob = null;
 
         var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hits = {
             "mortal": [
                 [
@@ -725,7 +725,7 @@ function qunit_test() {
         var hit_prob = null;
 
         var wound_prob = calc_wound_prob(wound_stat, wound_crit, wound_mod, wound_reroll, hit_abilities, hit_prob);
-        var damage_prob = parse_dice_prob_array('1').normal;
+        var damage_prob = parse_dice_prob_array('1', 1).normal;
         var hits = {
             "mortal": [
                 [
@@ -1040,7 +1040,7 @@ function qunit_test() {
         var wound_val = '2';
         var fnp = null;
 
-        var damage_prob = parse_dice_prob_array(damage_val).normal;
+        var damage_prob = parse_dice_prob_array(damage_val, 1).normal;
         var unsaved = {
             normal: [0, 0, 1],
             mortal: [
@@ -1082,7 +1082,7 @@ function qunit_test() {
         var wound_val = '2';
         var fnp = null;
 
-        var damage_prob = parse_dice_prob_array(damage_val).normal;
+        var damage_prob = parse_dice_prob_array(damage_val, 1).normal;
         var unsaved = {
             normal: [0, 0, 1],
             mortal: [
@@ -1146,9 +1146,9 @@ function qunit_test() {
         var fnp = '';
         var wound_val = '1';
 
-        var attacks = parse_dice_prob_array(hit_dice);
+        var attacks = parse_dice_prob_array(hit_dice, 1);
         var damage_value = '1';
-        var damage_prob = parse_dice_prob_array(damage_value).normal;
+        var damage_prob = parse_dice_prob_array(damage_value, 1).normal;
         var hit_prob = success_chance(hit_stat, 6, hit_mod);
 
         var hits = do_hits(hit_stat, hit_mod, hit_reroll, attacks, hit_abilities, damage_prob, hit_prob);
