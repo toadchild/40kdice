@@ -12,159 +12,159 @@
         <link rel="icon" type="image/png" href="http://ghostlords.com/favicon-16.png" sizes="16x16" />
     </head>
     <body onload="init_aos()">
-    <h1>AoS Visual Dice Calculator</h1>
-    <p>Please also check out the version for <a href="/dice/">40K</a></p>
+        <h1>AoS Visual Dice Calculator</h1>
+        <p>Please also check out the version for <a href="/dice/">40K</a></p>
 
-    <div id="attack" class="input">
-        <h2>Attack Stats</h2>
-        <table>
-            <tr>
-                <th>Models</th>
-                <th>Attacks</th>
-                <th>To Hit</th>
-                <th>To Wound</th>
-                <th>Rend</th>
-                <th>Damage</th>
-            </tr>
-            <tr>
-                <td><input type="text" class="stat" id="models" value="1"></td>
-                <td><input type="text" class="stat" id="attacks"></td>
-                <td><input type="text" class="stat" id="hit"></td>
-                <td><input type="text" class="stat" id="wound"></td>
-                <td><input type="text" class="stat" id="rend"></td>
-                <td><input type="text" class="stat" id="d" value="1"></td>
-            </tr>
-        </table>
-        <div class="attacker">
-            <div class="modifiers" id="hit_mods">
-                <p><label>Hit Modifier: <input type="text" id="hit_mod"></label>
-                <span class="description">Ex: 1, -2</span>
-                </p>
-                <p>
-                Hit rolls of 6:
-                <select id="hit_of_6">
-                    <option value="">Do nothing special</option>
-                    <option value="1roll">Generate 1 extra hit roll</option>
-                    <option value="1">Generate 1 extra hit</option>
-                    <option value="2">Generate 2 extra hits</option>
-                    <option value="autowound">Automatically pass their wound roll</option>
-                    <option value="+mortal">Deal 1 mortal wound in addition to regular damage</option>
-                    <option value="mortal">Deal their damage as mortal wounds</option>
-                </select>
-                </p>
-                <p>
-                Reroll: <select id="hit_reroll">
-                    <option value="">No hit rolls</option>
-                    <option value="1">Hit rolls of 1</option>
-                    <option value="fail">Failed hit rolls</option>
-                    <option value="noncrit">Non-critical hit rolls</option>
-                </select>
-                </p>
-            </div>
-            <div class="modifiers" id="wound_mods">
-                <p><label>Wound Modifier: <input type="text" id="wound_mod"></label>
-                <span class="description">Ex: 1, -2</span>
-                </p>
-                <p>
-                Wound rolls of 6:
-                <select id="wound_of_6">
-                    <option value="">Do nothing special</option>
-                    <option value="-1">Are resolved with -1 to Rend</option>
-                    <option value="-3">Are resolved with -3 to Rend</option>
-                    <option value="-4">Are resolved with -4 to Rend</option>
-                    <option value="+mortal">Deal 1 mortal wound in addition to regular damage</option>
-                    <option value="mortal">Deal their damage as mortal wounds</option>
-                </select>
-                </p>
-                <p>
-                Reroll: <select id="wound_reroll">
-                    <option value="">No wound rolls</option>
-                    <option value="1">Wound rolls of 1</option>
-                    <option value="fail">Failed wound rolls</option>
-                    <option value="noncrit">Non-critical wound rolls</option>
-                </select>
-                </p>
-            </div>
-        </div>
-    </div>
-    <div id="defense" class="input">
-        <h2>Defense Stats</h2>
-        <table>
-            <tr>
-                <th>Save</th>
-                <th>Wounds</th>
-            </tr>
-            <tr>
-                <td><input type="text" class="stat" id="save"></td>
-                <td><input type="text" class="stat" id="wounds"></td>
-            </tr>
-        </table>
-        <div class="defender">
-            <div class="modifiers" id="save_mods">
-                <p><label>Save Modifier: <input type="text" id="save_mod"></label>
-                <span class="description">Ex: 1, -2</span>
-                </p>
-                <p>
-                <label><input type="checkbox" id="cover" value="1">Cover</label>
-                </p>
-                Reroll: <select id="save_reroll">
-                    <option value="">No save rolls</option>
-                    <option value="1">Any save rolls of 1</option>
-                    <option value="fail">Any failed save rolls</option>
-                </select>
-                </p>
-                Shake off damage: <select id="shake">
-                    <option value="">Never</option>
-                    <option value="6">On a roll of 6</option>
-                    <option value="56">On a roll of 5 or 6</option>
-                </select>
+        <div id="attack" class="input">
+            <h2>Attack Stats</h2>
+            <table>
+                <tr>
+                    <th>Models</th>
+                    <th>Attacks</th>
+                    <th>To Hit</th>
+                    <th>To Wound</th>
+                    <th>Rend</th>
+                    <th>Damage</th>
+                </tr>
+                <tr>
+                    <td><input type="text" class="stat" id="models" value="1"></td>
+                    <td><input type="text" class="stat" id="attacks"></td>
+                    <td><input type="text" class="stat" id="hit"></td>
+                    <td><input type="text" class="stat" id="wound"></td>
+                    <td><input type="text" class="stat" id="rend"></td>
+                    <td><input type="text" class="stat" id="d" value="1"></td>
+                </tr>
+            </table>
+            <div class="attacker">
+                <div class="modifiers" id="hit_mods">
+                    <p><label>Hit Modifier: <input type="text" id="hit_mod"></label>
+                    <span class="description">Ex: 1, -2</span>
+                    </p>
+                    <p>
+                    Hit rolls of 6:
+                    <select id="hit_of_6">
+                        <option value="">Do nothing special</option>
+                        <option value="1roll">Generate 1 extra hit roll</option>
+                        <option value="1">Generate 1 extra hit</option>
+                        <option value="2">Generate 2 extra hits</option>
+                        <option value="autowound">Automatically pass their wound roll</option>
+                        <option value="+mortal">Deal 1 mortal wound in addition to regular damage</option>
+                        <option value="mortal">Deal their damage as mortal wounds</option>
+                    </select>
+                    </p>
+                    <p>
+                    Reroll: <select id="hit_reroll">
+                        <option value="">No hit rolls</option>
+                        <option value="1">Hit rolls of 1</option>
+                        <option value="fail">Failed hit rolls</option>
+                        <option value="noncrit">Non-critical hit rolls</option>
+                    </select>
+                    </p>
+                </div>
+                <div class="modifiers" id="wound_mods">
+                    <p><label>Wound Modifier: <input type="text" id="wound_mod"></label>
+                    <span class="description">Ex: 1, -2</span>
+                    </p>
+                    <p>
+                    Wound rolls of 6:
+                    <select id="wound_of_6">
+                        <option value="">Do nothing special</option>
+                        <option value="-1">Are resolved with -1 to Rend</option>
+                        <option value="-3">Are resolved with -3 to Rend</option>
+                        <option value="-4">Are resolved with -4 to Rend</option>
+                        <option value="+mortal">Deal 1 mortal wound in addition to regular damage</option>
+                        <option value="mortal">Deal their damage as mortal wounds</option>
+                    </select>
+                    </p>
+                    <p>
+                    Reroll: <select id="wound_reroll">
+                        <option value="">No wound rolls</option>
+                        <option value="1">Wound rolls of 1</option>
+                        <option value="fail">Failed wound rolls</option>
+                        <option value="noncrit">Non-critical wound rolls</option>
+                    </select>
+                    </p>
+                </div>
             </div>
         </div>
-    </div>
-    <p><button onclick="roll_aos()">Roll</button></p>
+        <div id="defense" class="input">
+            <h2>Defense Stats</h2>
+            <table>
+                <tr>
+                    <th>Save</th>
+                    <th>Wounds</th>
+                </tr>
+                <tr>
+                    <td><input type="text" class="stat" id="save"></td>
+                    <td><input type="text" class="stat" id="wounds"></td>
+                </tr>
+            </table>
+            <div class="defender">
+                <div class="modifiers" id="save_mods">
+                    <p><label>Save Modifier: <input type="text" id="save_mod"></label>
+                    <span class="description">Ex: 1, -2</span>
+                    </p>
+                    <p>
+                    <label><input type="checkbox" id="cover" value="1">Cover</label>
+                    </p>
+                    Reroll: <select id="save_reroll">
+                        <option value="">No save rolls</option>
+                        <option value="1">Any save rolls of 1</option>
+                        <option value="fail">Any failed save rolls</option>
+                    </select>
+                    </p>
+                    Shake off damage: <select id="shake">
+                        <option value="">Never</option>
+                        <option value="6">On a roll of 6</option>
+                        <option value="56">On a roll of 5 or 6</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <p><button onclick="roll_aos()">Roll</button></p>
 
-    <div class="output">
-        <div class="chart">
-            <canvas id="attack_chart" width="200" height="100"></canvas>
+        <div class="output">
+            <div class="chart">
+                <canvas id="attack_chart" width="200" height="100"></canvas>
+            </div>
+            <p id="attack_text"></p>
         </div>
-        <p id="attack_text"></p>
-    </div>
-    <div class="output">
-        <div class="chart">
-            <canvas id="hit_chart" width="200" height="100"></canvas>
+        <div class="output">
+            <div class="chart">
+                <canvas id="hit_chart" width="200" height="100"></canvas>
+            </div>
+            <p id="hit_text"></p>
         </div>
-        <p id="hit_text"></p>
-    </div>
-    <div class="output">
-        <div class="chart">
-            <canvas id="wound_chart" width="200" height="100"></canvas>
+        <div class="output">
+            <div class="chart">
+                <canvas id="wound_chart" width="200" height="100"></canvas>
+            </div>
+            <p id="wound_text"></p>
         </div>
-        <p id="wound_text"></p>
-    </div>
-    <div class="output">
-        <div class="chart">
-            <canvas id="unsaved_chart" width="200" height="100"></canvas>
+        <div class="output">
+            <div class="chart">
+                <canvas id="unsaved_chart" width="200" height="100"></canvas>
+            </div>
+            <p id="unsaved_text"></p>
         </div>
-        <p id="unsaved_text"></p>
-    </div>
-    <div class="output">
-        <div class="chart">
-            <canvas id="damage_chart" width="200" height="100"></canvas>
+        <div class="output">
+            <div class="chart">
+                <canvas id="damage_chart" width="200" height="100"></canvas>
+            </div>
+            <p id="damage_text"></p>
         </div>
-        <p id="damage_text"></p>
-    </div>
-    <div class="output">
-        <div class="chart">
-            <canvas id="killed_chart" width="200" height="100"></canvas>
+        <div class="output">
+            <div class="chart">
+                <canvas id="killed_chart" width="200" height="100"></canvas>
+            </div>
+            <p id="killed_text"></p>
         </div>
-        <p id="killed_text"></p>
-    </div>
 
-    <p class="endnote">
-    This tool was created by <a href="http://ghostlords.com/">Jonathan Polley</a> to help enhance your enjoyment of Warhammer: Age of Sigmar.
-    Please direct any feedback to <a href="mailto:40k@ghostlords.com">40k@ghostlords.com</a>.<br>
-    Bug reports are welcome on <a href="https://github.com/toadchild/40kdice/issues">Github</a>.<br>
-    <a href="https://ageofsigmar.com/">Warhammer: Age of Sigmar</a> is &copy; Games Workshop Limited.<br>
-    </p>
+        <p class="endnote">
+        This tool was created by <a href="http://ghostlords.com/">Jonathan Polley</a> to help enhance your enjoyment of Warhammer: Age of Sigmar.
+        Please direct any feedback to <a href="mailto:40k@ghostlords.com">40k@ghostlords.com</a>.<br>
+        Bug reports are welcome on <a href="https://github.com/toadchild/40kdice/issues">Github</a>.<br>
+        <a href="https://ageofsigmar.com/">Warhammer: Age of Sigmar</a> is &copy; Games Workshop Limited.<br>
+        </p>
     </body>
 </html>
