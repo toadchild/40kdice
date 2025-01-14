@@ -39,61 +39,65 @@
                 <td><input type="text" class="stat" id="d" value="1"></td>
             </tr>
         </table>
-        <div class="modifiers" id="hit_mods">
-            <p><label>Hit Modifier: <input type="text" id="hit_mod"></label>
-            <span class="description">Ex: 1, -2</span>
-            </p>
-            <p>
-            <label><input type="checkbox" id="hit_leth" value="1">Lethal Hits</label>
-            </p>
-            <p><label>Sustained Hits: <input type="text" id="hit_sus"></label>
-            <span class="description">Ex: 1, 2</span>
-            </p>
-            <p><label>Critical Hit: <input type="text" id="hit_crit"></label>
-            <span class="description">Ex: 2, 4</span>
-            </p>
-            <p>
-            Critical hit rolls:
-            <select id="hit_of_6">
-                <option value="">Have no other abilities</option>
-                <option value="+mortal">Deal 1 mortal wound in addition to regular damage</option>
-                <option value="mortal">Deal their damage as mortal wounds</option>
-            </select>
-            </p>
-            <p>
-            Reroll: <select id="hit_reroll">
-                <option value="">No hit rolls</option>
-                <option value="1">Hit rolls of 1</option>
-                <option value="fail">Failed hit rolls</option>
-                <option value="noncrit">Non-critical hit rolls</option>
-            </select>
-            </p>
-        </div>
-        <div class="modifiers" id="wound_mods">
-            <p><label>Wound Modifier: <input type="text" id="wound_mod"></label>
-            <span class="description">Ex: 1, -2</span>
-            </p>
-            <p>
-            <label><input type="checkbox" id="wound_dev" value="1">Devastating Wounds</label>
-            </p>
-            <p><label>Critical Wound (Anti-X): <input type="text" id="wound_crit"></label>
-            <span class="description">Ex: 2, 4</span>
-            </p>
-            <p>
-            Critical wound rolls:
-            <select id="wound_of_6">
-                <option value="">Have no other abilities</option>
-                <option value="+mortal">Deal 1 mortal wound in addition to regular damage</option>
-            </select>
-            </p>
-            <p>
-            Reroll: <select id="wound_reroll">
-                <option value="">No wound rolls</option>
-                <option value="1">Wound rolls of 1</option>
-                <option value="fail">Failed wound rolls</option>
-                <option value="noncrit">Non-critical wound rolls</option>
-            </select>
-            </p>
+        <div class="attacker">
+            <div class="modifiers">
+                <p><label>Hit Modifier: <input type="text" id="hit_mod"></label>
+                <span class="description">Ex: 1, -2</span>
+                </p>
+                <p>
+                <label><input type="checkbox" id="hit_leth" value="1">Lethal Hits</label>
+                </p>
+                <p><label>Sustained Hits: <input type="text" id="hit_sus"></label>
+                <span class="description">Ex: 1, 2</span>
+                </p>
+                <p><label>Critical Hit: <input type="text" id="hit_crit"></label>
+                <span class="description">Ex: 2, 4</span>
+                </p>
+                <p>
+                Critical hit rolls:
+                <select id="hit_of_6">
+                    <option value="">Have no other abilities</option>
+                    <option value="+mortal">Deal 1 mortal wound in addition to regular damage</option>
+                    <option value="mortal">Deal their damage as mortal wounds</option>
+                </select>
+                </p>
+                <p>
+                Reroll:
+                <select id="hit_reroll">
+                    <option value="">No hit rolls</option>
+                    <option value="1">Hit rolls of 1</option>
+                    <option value="fail">Failed hit rolls</option>
+                    <option value="noncrit">Non-critical hit rolls</option>
+                </select>
+                </p>
+            </div>
+            <div class="modifiers">
+                <p><label>Wound Modifier: <input type="text" id="wound_mod"></label>
+                <span class="description">Ex: 1, -2</span>
+                </p>
+                <p>
+                <label><input type="checkbox" id="wound_dev" value="1">Devastating Wounds</label>
+                </p>
+                <p><label>Critical Wound (Anti-X): <input type="text" id="wound_crit"></label>
+                <span class="description">Ex: 2, 4</span>
+                </p>
+                <p>
+                Critical wound rolls:
+                <select id="wound_of_6">
+                    <option value="">Have no other abilities</option>
+                    <option value="+mortal">Deal 1 mortal wound in addition to regular damage</option>
+                </select>
+                </p>
+                <p>
+                Reroll:
+                <select id="wound_reroll">
+                    <option value="">No wound rolls</option>
+                    <option value="1">Wound rolls of 1</option>
+                    <option value="fail">Failed wound rolls</option>
+                    <option value="noncrit">Non-critical wound rolls</option>
+                </select>
+                </p>
+            </div>
         </div>
     </div>
     <div id="defense" class="input">
@@ -112,25 +116,27 @@
                 <td><input type="text" class="stat" id="wounds"></td>
             </tr>
         </table>
-        <div class="modifiers" id="save_mods">
-            <p><label>Save Modifier: <input type="text" id="save_mod"></label>
-            <span class="description">Ex: 1, -2</span>
-            </p>
-            <p>
-            <label><input type="checkbox" id="cover" value="1">Cover</label>
-            </p>
-            <p>
-            Reroll: <select id="save_reroll">
-                <option value="">No save rolls</option>
-                <option value="1">Any save rolls of 1</option>
-                <option value="fail">Any failed save rolls</option>
-                <option value="inv_1">Invulnerable save rolls of 1</option>
-                <option value="inv_fail">Failed invulnerable save rolls</option>
-            </select>
-            </p>
-            <p><label>Feel No Pain: <input type="text" id="fnp"></label>
-            <span class="description">Ex: 4, 6</span>
-            </p>
+        <div class="defender">
+            <div class="modifiers">
+                <p><label>Save Modifier: <input type="text" id="save_mod"></label>
+                <span class="description">Ex: 1, -2</span>
+                </p>
+                <p>
+                <label><input type="checkbox" id="cover" value="1">Cover</label>
+                </p>
+                <p>
+                Reroll: <select id="save_reroll">
+                    <option value="">No save rolls</option>
+                    <option value="1">Any save rolls of 1</option>
+                    <option value="fail">Any failed save rolls</option>
+                    <option value="inv_1">Invulnerable save rolls of 1</option>
+                    <option value="inv_fail">Failed invulnerable save rolls</option>
+                </select>
+                </p>
+                <p><label>Feel No Pain: <input type="text" id="fnp"></label>
+                <span class="description">Ex: 4, 6</span>
+                </p>
+            </div>
         </div>
     </div>
 

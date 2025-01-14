@@ -19,8 +19,17 @@
     font-style: italic;
 }
 
+.attacker {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.defender {
+    display: flex;
+    flex-wrap: wrap;
+}
+
 .modifiers {
-    float: left;
     padding: 5px;
     margin: 5px;
     border: 1px solid black;
@@ -31,12 +40,6 @@
     margin: 5px;
     padding-left: 5px;
     border-left: 4px solid blue;
-}
-
-.input::after {
-    content: "";
-    clear: both;
-    display: table;
 }
 
 input.stat {
